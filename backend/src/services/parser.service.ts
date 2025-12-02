@@ -8,6 +8,7 @@ export interface ClienteData {
   estado?: string;
   cep?: string;
   tipoServico?: string;
+  cnpj?: string; // CNPJ do cliente
 }
 
 export interface ParseResult {
@@ -84,6 +85,7 @@ export class ParserService {
           estado: this.extractField(row, ['estado', 'Estado', 'ESTADO', 'uf', 'UF']),
           cep: this.extractField(row, ['cep', 'CEP', 'Cep']),
           tipoServico: this.extractField(row, ['tipo_servico', 'Tipo Serviço', 'servico', 'Serviço']),
+          cnpj: this.extractField(row, ['cnpj', 'CNPJ', 'Cnpj', 'CPF', 'cpf']),
         };
 
         // Validação básica
@@ -97,6 +99,7 @@ export class ParserService {
         cliente.endereco = this.normalizarTexto(cliente.endereco);
         if (cliente.telefone) cliente.telefone = this.normalizarTelefone(cliente.telefone);
         if (cliente.cep) cliente.cep = this.normalizarCEP(cliente.cep);
+        if (cliente.cnpj) cliente.cnpj = this.normalizarCNPJ(cliente.cnpj);
 
         clientes.push(cliente);
       } catch (error) {
@@ -152,6 +155,20 @@ export class ParserService {
       return `${cepLimpo.slice(0, 5)}-${cepLimpo.slice(5)}`;
     }
     return cepLimpo;
+  }
+
+  /**
+   * Normaliza CNPJ/CPF (remove caracteres não numéricos)
+   */
+  private normalizarCNPJ(cnpj: string): string {
+    // Remove tudo que não é dígito
+    const cnpjLimpo = cnpj.replace(/\D/g, '');
+    // Retorna apenas os dígitos (14 para CNPJ, 11 para CPF)
+    if (cnpjLimpo.length === 14 || cnpjLimpo.length === 11) {
+      return cnpjLimpo;
+    }
+    // Se não tem tamanho válido, retorna mesmo assim (será validado depois)
+    return cnpjLimpo;
   }
 
   /**

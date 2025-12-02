@@ -121,6 +121,7 @@ export class UploadController {
             estado: row.estado ? row.estado.trim().toUpperCase() : null,
             cep: row.cep ? row.cep.replace(/\D/g, '') : null,
             tipoServico: row.tipoServico ? row.tipoServico.trim() : null,
+            cnpj: row.cnpj ? row.cnpj.replace(/\D/g, '') : null,
           };
 
           clientes.push(cliente);
@@ -208,6 +209,10 @@ export class UploadController {
             updateData.tipoServico = cliente.tipoServico;
             temAtualizacao = true;
           }
+          if (!clienteExistente.cnpj && cliente.cnpj) {
+            updateData.cnpj = cliente.cnpj;
+            temAtualizacao = true;
+          }
 
           if (temAtualizacao) {
             await prisma.cliente.update({
@@ -232,6 +237,7 @@ export class UploadController {
               estado: cliente.estado || null,
               cep: cliente.cep || null,
               tipoServico: cliente.tipoServico || null,
+              cnpj: cliente.cnpj || null,
               status: 'PENDENTE',
             },
           });
