@@ -18,15 +18,16 @@ export async function startTipologiaAll(req: Request, res: Response) {
   try {
     console.log('\n🏷️  ===== INICIANDO CLASSIFICAÇÃO DE TIPOLOGIAS =====');
 
-    // Buscar clientes que têm análise concluída e ainda não têm tipologia
+    // Buscar TODOS os clientes que ainda não têm tipologia
+    // Incluindo aqueles sem fotos (terão confiança menor)
     const clientes = await prisma.cliente.findMany({
       where: {
-        enrichmentStatus: 'CONCLUIDO', // Tem fotos analisadas
         tipologia: null, // Ainda não foi classificado
       },
       select: {
         id: true,
         nome: true,
+        enrichmentStatus: true,
       },
     });
 

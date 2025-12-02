@@ -56,11 +56,20 @@ tipologiaQueue.process('classify-tipologia', async (job: Job<TipologiaJobData>) 
     // Montar contexto completo para a IA
     const contexto = montarContextoCompleto(cliente);
 
+    const temFotos = (cliente.totalFotosDisponiveis || 0) > 0;
+    const temPlaces = !!cliente.placeId;
+
     console.log(`\n📊 Contexto montado:`);
-    console.log(`   - Google Places: ${cliente.placeId ? 'Sim' : 'Não'}`);
-    console.log(`   - Fotos disponíveis: ${cliente.totalFotosDisponiveis || 0}`);
+    console.log(`   - Google Places: ${temPlaces ? '✅ Sim' : '❌ Não'}`);
+    console.log(`   - Fotos disponíveis: ${cliente.totalFotosDisponiveis || 0} ${temFotos ? '✅' : '⚠️  (confiança reduzida)'}`);
     console.log(`   - Rating: ${cliente.rating || 'N/A'}`);
     console.log(`   - Tipo Places: ${cliente.tipoEstabelecimento || 'N/A'}`);
+
+    if (!temFotos && !temPlaces) {
+      console.log(`   ⚠️  ATENÇÃO: Cliente sem fotos e sem Places - classificação baseada apenas em dados básicos`);
+    } else if (!temFotos) {
+      console.log(`   ℹ️  Cliente sem fotos - classificação baseada em Google Places e dados da Receita`);
+    }
 
     // Chamar IA para classificar
     console.log(`\n🤖 Chamando Claude para classificar tipologia...`);
