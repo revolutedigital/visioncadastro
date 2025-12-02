@@ -117,18 +117,22 @@ export class GeocodingController {
       let waiting = 0, active = 0, completed = 0, failed = 0;
       let redisAvailable = true;
 
-      try {
-        const results = await Promise.all([
-          geocodingQueue.getWaitingCount().catch(() => 0),
-          geocodingQueue.getActiveCount().catch(() => 0),
-          geocodingQueue.getCompletedCount().catch(() => 0),
-          geocodingQueue.getFailedCount().catch(() => 0),
-        ]);
-        [waiting, active, completed, failed] = results;
-        if (results.every(r => r === 0)) redisAvailable = false;
-      } catch (error: any) {
-        console.warn('⚠️  Redis indisponível', error.message);
+      if (!process.env.REDIS_URL && process.env.NODE_ENV === 'production') {
         redisAvailable = false;
+      } else {
+        try {
+          const results = await Promise.all([
+            geocodingQueue.getWaitingCount().catch(() => 0),
+            geocodingQueue.getActiveCount().catch(() => 0),
+            geocodingQueue.getCompletedCount().catch(() => 0),
+            geocodingQueue.getFailedCount().catch(() => 0),
+          ]);
+          [waiting, active, completed, failed] = results;
+          if (results.every(r => r === 0)) redisAvailable = false;
+        } catch (error: any) {
+          console.warn('⚠️  Redis indisponível', error.message);
+          redisAvailable = false;
+        }
       }
 
       // Estatísticas do banco

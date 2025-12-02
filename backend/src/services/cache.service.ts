@@ -20,7 +20,7 @@ export class CacheService {
           commandTimeout: 5000,
           // TLS pode ser necessário no Railway
           tls: process.env.REDIS_URL.startsWith('rediss://') ? {} : undefined,
-          retryStrategy: (times) => {
+          retryStrategy: (times: number) => {
             const delay = Math.min(times * 50, 2000);
             return delay;
           },
@@ -31,7 +31,7 @@ export class CacheService {
           port: parseInt(process.env.REDIS_PORT || '6379'),
           password: process.env.REDIS_PASSWORD,
           maxRetriesPerRequest: 3,
-          retryStrategy: (times) => {
+          retryStrategy: (times: number) => {
             const delay = Math.min(times * 50, 2000);
             return delay;
           },
