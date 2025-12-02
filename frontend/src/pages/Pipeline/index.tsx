@@ -506,9 +506,45 @@ export function PipelinePage() {
                     </div>
                   </div>
 
-                  {/* 🎯 VISION AI: Mostrar detalhes de sucessos/falhas para Google Places */}
-                  {step.id === '3' && placesDetails && (placesDetails.processados > 0 || placesDetails.falhas > 0) && (
+                  {/* 🎯 RECEITA FEDERAL: Estatísticas */}
+                  {step.id === '0' && queueStatus && queueStatus.clientes.comReceita > 0 && (
+                    <div className="mt-2 flex items-center gap-2 text-xs flex-wrap">
+                      <span className="flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 rounded-md border border-purple-200">
+                        <CheckCircle className="w-3 h-3" />
+                        {queueStatus.clientes.comReceita} {queueStatus.clientes.comReceita === 1 ? 'processado' : 'processados'}
+                      </span>
+                      {queueStatus.clientes.divergenciaEndereco > 0 && (
+                        <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
+                          <AlertCircle className="w-3 h-3" />
+                          {queueStatus.clientes.divergenciaEndereco} {queueStatus.clientes.divergenciaEndereco === 1 ? 'divergência' : 'divergências'} de endereço
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 🎯 NORMALIZAÇÃO: Estatísticas */}
+                  {step.id === '1' && queueStatus && queueStatus.clientes.normalizados > 0 && (
                     <div className="mt-2 flex items-center gap-2 text-xs">
+                      <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
+                        <CheckCircle className="w-3 h-3" />
+                        {queueStatus.clientes.normalizados} {queueStatus.clientes.normalizados === 1 ? 'normalizado' : 'normalizados'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* 🎯 GEOCODIFICAÇÃO: Estatísticas */}
+                  {step.id === '2' && queueStatus && queueStatus.clientes.geocodificados > 0 && (
+                    <div className="mt-2 flex items-center gap-2 text-xs">
+                      <span className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
+                        <CheckCircle className="w-3 h-3" />
+                        {queueStatus.clientes.geocodificados} {queueStatus.clientes.geocodificados === 1 ? 'geocodificado' : 'geocodificados'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* 🎯 GOOGLE PLACES: Estatísticas de sucessos/falhas */}
+                  {step.id === '3' && placesDetails && (placesDetails.processados > 0 || placesDetails.falhas > 0) && (
+                    <div className="mt-2 flex items-center gap-2 text-xs flex-wrap">
                       <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
                         <CheckCircle className="w-3 h-3" />
                         {placesDetails.processados} {placesDetails.processados === 1 ? 'sucesso' : 'sucessos'}
@@ -522,7 +558,23 @@ export function PipelinePage() {
                     </div>
                   )}
 
-                  {/* 🎯 TIPOLOGIA: Mostrar estatísticas de classificação */}
+                  {/* 🎯 ANÁLISE IA VISION: Estatísticas */}
+                  {step.id === '4' && queueStatus && queueStatus.fotos.analisadas > 0 && (
+                    <div className="mt-2 flex items-center gap-2 text-xs flex-wrap">
+                      <span className="flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 rounded-md border border-purple-200">
+                        <CheckCircle className="w-3 h-3" />
+                        {queueStatus.fotos.analisadas} {queueStatus.fotos.analisadas === 1 ? 'foto analisada' : 'fotos analisadas'}
+                      </span>
+                      {queueStatus.fotos.naoAnalisadas > 0 && (
+                        <span className="flex items-center gap-1 px-2 py-1 bg-gray-50 text-gray-700 rounded-md border border-gray-200">
+                          <Clock className="w-3 h-3" />
+                          {queueStatus.fotos.naoAnalisadas} {queueStatus.fotos.naoAnalisadas === 1 ? 'pendente' : 'pendentes'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 🎯 TIPOLOGIA: Estatísticas de classificação */}
                   {step.id === '5' && tipologiaStats && tipologiaStats.total > 0 && (
                     <div className="mt-2 flex items-center gap-2 text-xs">
                       <span className="flex items-center gap-1 px-2 py-1 bg-pink-50 text-pink-700 rounded-md border border-pink-200">
