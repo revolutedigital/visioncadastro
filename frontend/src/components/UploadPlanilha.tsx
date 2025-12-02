@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import axios from 'axios';
-
-const API_URL = 'http://localhost:4000';
+import { API_BASE_URL } from '../config/api';
 
 interface UploadResult {
   success: boolean;
@@ -62,7 +61,7 @@ export function UploadPlanilha({ onSuccess }: { onSuccess?: () => void }) {
     formData.append('file', file);
 
     try {
-      const response = await axios.post<UploadResult>(`${API_URL}/api/upload`, formData, {
+      const response = await axios.post<UploadResult>(`${API_BASE_URL}/api/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

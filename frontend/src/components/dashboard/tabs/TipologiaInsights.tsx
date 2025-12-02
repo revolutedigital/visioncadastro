@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../../config/api';
 import { TipologiaDistribuicao } from '../../TipologiaDistribuicao';
 import { logger } from '../../../utils/logger';
 
@@ -12,7 +13,7 @@ function TipologiaInsights() {
 
   const loadTipologias = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/tipologia/distribuicao');
+      const response = await fetch(`${API_BASE_URL}/api/tipologia/distribuicao`);
       const data = await response.json();
       if (data.success) {
         setDistribuicao(data);

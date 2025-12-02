@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import {
   Upload,
   MapPin,
@@ -109,10 +110,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const loadStats = async () => {
     try {
       const [geocodingRes, placesRes, analysisRes, enrichmentRes] = await Promise.all([
-        fetch('http://localhost:4000/api/geocoding/status'),
-        fetch('http://localhost:4000/api/places/status'),
-        fetch('http://localhost:4000/api/analysis/status'),
-        fetch('http://localhost:4000/api/enrichment/status').catch(() => null),
+        fetch(`${API_BASE_URL}/api/geocoding/status`),
+        fetch(`${API_BASE_URL}/api/places/status`),
+        fetch(`${API_BASE_URL}/api/analysis/status`),
+        fetch(`${API_BASE_URL}/api/enrichment/status`).catch(() => null),
       ]);
 
       const [geocoding, places, analysis] = await Promise.all([
@@ -158,7 +159,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const loadTopCliente = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/analysis/clientes?status=CONCLUIDO');
+      const response = await fetch(`${API_BASE_URL}/api/analysis/clientes?status=CONCLUIDO`);
       const data = await response.json();
 
       if (data.success && data.clientes && data.clientes.length > 0) {
@@ -175,7 +176,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const loadDataQuality = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/data-quality/report');
+      const response = await fetch(`${API_BASE_URL}/api/data-quality/report`);
       const data = await response.json();
       setDataQualityReport(data);
       setLoadingQuality(false);
@@ -190,7 +191,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
     setRecalculating(true);
     try {
-      const response = await fetch('http://localhost:4000/api/analysis/recalculate-scores', {
+      const response = await fetch(`${API_BASE_URL}/api/analysis/recalculate-scores`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -212,7 +213,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const handleStartGeocoding = async () => {
     try {
-      await fetch('http://localhost:4000/api/geocoding/start', { method: 'POST' });
+      await fetch(`${API_BASE_URL}/api/geocoding/start`, { method: 'POST' });
       alert('Geocoding iniciado!');
     } catch (error) {
       alert('Erro ao iniciar geocoding');
@@ -221,7 +222,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const handleStartPlaces = async () => {
     try {
-      await fetch('http://localhost:4000/api/places/start', { method: 'POST' });
+      await fetch(`${API_BASE_URL}/api/places/start`, { method: 'POST' });
       alert('Busca no Google Places iniciada!');
     } catch (error) {
       alert('Erro ao iniciar Places');
@@ -230,7 +231,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const handleStartAnalysis = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/analysis/start', {
+      const response = await fetch(`${API_BASE_URL}/api/analysis/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'batch' }),
@@ -249,7 +250,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const handleStartEnrichment = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/enrichment/start', {
+      const response = await fetch(`${API_BASE_URL}/api/enrichment/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ maxQualityScore: 70 }), // Enriquecer clientes com score < 70%
@@ -268,7 +269,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
   const loadTipologiaDistribuicao = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/tipologia/distribuicao');
+      const response = await fetch(`${API_BASE_URL}/api/tipologia/distribuicao`);
       const data = await response.json();
       if (data.success) {
         setTipologiaDistribuicao(data);
@@ -291,7 +292,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
     setCalculatingTipologia(true);
     try {
-      const response = await fetch('http://localhost:4000/api/tipologia/recalcular-todos', {
+      const response = await fetch(`${API_BASE_URL}/api/tipologia/recalcular-todos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });

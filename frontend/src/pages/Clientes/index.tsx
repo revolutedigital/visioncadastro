@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import {
   Search,
   Filter,
@@ -62,7 +63,7 @@ export function ClientesPage() {
 
   const loadClientes = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/analysis/clientes');
+      const response = await fetch(`${API_BASE_URL}/api/analysis/clientes`);
       const data = await response.json();
       if (data.success) {
         const clientesComAnalise = data.clientes.map((cliente: any) => {

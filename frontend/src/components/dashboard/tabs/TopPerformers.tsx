@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { Award, TrendingUp, Eye, ExternalLink } from 'lucide-react';
 import { logger } from '../../../utils/logger';
@@ -24,7 +25,7 @@ function TopPerformers() {
 
   const loadTopPerformers = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/analysis/clientes?status=CONCLUIDO');
+      const response = await fetch(`${API_BASE_URL}/api/analysis/clientes?status=CONCLUIDO`);
       const data = await response.json();
 
       if (data.success && data.clientes) {

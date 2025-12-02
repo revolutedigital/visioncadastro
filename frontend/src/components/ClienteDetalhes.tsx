@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../config/api';
 import {
   MapPin,
   Star,
@@ -102,7 +103,7 @@ export function ClienteDetalhes({ clienteId, onBack }: ClienteDetalhesProps) {
   const loadClienteDetalhes = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:4000/api/analysis/${clienteId}/resultado`);
+      const response = await fetch(`${API_BASE_URL}/api/analysis/${clienteId}/resultado`);
       const result = await response.json();
 
       if (!result.success) {
@@ -422,7 +423,7 @@ export function ClienteDetalhes({ clienteId, onBack }: ClienteDetalhesProps) {
                       className="relative rounded-lg overflow-hidden border-2 border-gray-200 hover:border-indigo-400 transition-colors"
                     >
                       <img
-                        src={`http://localhost:4000/api/fotos/${foto.fileName}`}
+                        src={`${API_BASE_URL}/api/fotos/${foto.fileName}`}
                         alt={`Foto ${idx + 1} - ${cliente.nome}`}
                         className="w-full h-48 object-cover"
                         onError={(e) => {

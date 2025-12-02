@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { logger } from '../utils/logger';
+import { API_BASE_URL } from '../config/api';
 
 export interface DashboardStats {
   geocoding: {
@@ -50,10 +51,10 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}) {
   const loadStats = useCallback(async () => {
     try {
       const [geocodingRes, placesRes, analysisRes, enrichmentRes] = await Promise.all([
-        fetch('http://localhost:4000/api/geocoding/status'),
-        fetch('http://localhost:4000/api/places/status'),
-        fetch('http://localhost:4000/api/analysis/status'),
-        fetch('http://localhost:4000/api/enrichment/status').catch(() => null),
+        fetch(`${API_BASE_URL}/api/geocoding/status`),
+        fetch(`${API_BASE_URL}/api/places/status`),
+        fetch(`${API_BASE_URL}/api/analysis/status`),
+        fetch(`${API_BASE_URL}/api/enrichment/status`).catch(() => null),
       ]);
 
       const [geocoding, places, analysis] = await Promise.all([

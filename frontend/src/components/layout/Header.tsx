@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Bell, User, X, Loader } from 'lucide-react';
 import { Breadcrumbs } from './Breadcrumbs';
 import { useApp } from '../../contexts/AppContext';
+import { API_BASE_URL } from '../../config/api';
 
 interface SearchResult {
   id: string;
@@ -63,7 +64,7 @@ export function Header() {
       setSearching(true);
       try {
         const response = await fetch(
-          `http://localhost:4000/api/analysis/clientes?search=${encodeURIComponent(globalSearchQuery)}`
+          `${API_BASE_URL}/api/analysis/clientes?search=${encodeURIComponent(globalSearchQuery)}`
         );
         const data = await response.json();
 

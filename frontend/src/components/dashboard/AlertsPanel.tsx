@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, RefreshCw, Eye, CheckCircle, ChevronRight } from 'lucide-react';
 import { logger } from '../../utils/logger';
@@ -28,8 +29,8 @@ export function AlertsPanel() {
     try {
       // Carregar dados de múltiplas fontes para gerar alertas
       const [statusRes, clientesRes] = await Promise.all([
-        fetch('http://localhost:4000/api/analysis/status'),
-        fetch('http://localhost:4000/api/analysis/clientes?status=CONCLUIDO'),
+        fetch(`${API_BASE_URL}/api/analysis/status`),
+        fetch(`${API_BASE_URL}/api/analysis/clientes?status=CONCLUIDO`),
       ]);
 
       const status = await statusRes.json();
@@ -50,7 +51,7 @@ export function AlertsPanel() {
             label: 'Reprocessar',
             onClick: async () => {
               try {
-                await fetch('http://localhost:4000/api/analysis/retry-failed', {
+                await fetch(`${API_BASE_URL}/api/analysis/retry-failed`, {
                   method: 'POST',
                 });
                 loadAlerts();

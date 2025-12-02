@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { logger } from '../utils/logger';
+import { API_BASE_URL } from '../config/api';
 
 interface SSELog {
   type: 'connected' | 'processing' | 'success' | 'error' | 'progress';
@@ -88,7 +89,7 @@ export function useSSELogs(queueName: string, options: UseSSELogsOptions = {}) {
       retryTimeoutRef.current = null;
     }
 
-    const url = `http://localhost:4000/api/analysis/queue-logs-stream/${queueName}`;
+    const url = `${API_BASE_URL}/api/analysis/queue-logs-stream/${queueName}`;
     const eventSource = new EventSource(url);
     eventSourceRef.current = eventSource;
 

@@ -1,4 +1,5 @@
 import { Image as ImageIcon, Brain, CheckCircle, Clock } from 'lucide-react';
+import { API_BASE_URL } from '../../../config/api';
 
 interface Foto {
   id: string;
@@ -38,7 +39,7 @@ export function FotosTab({ fotos }: FotosTabProps) {
           {/* Imagem */}
           <div className="relative h-48 bg-gray-100">
             <img
-              src={`http://localhost:4000/api/fotos/${foto.fileName}`}
+              src={`${API_BASE_URL}/api/fotos/${foto.fileName}`}
               alt={`Foto ${idx + 1}`}
               className="w-full h-full object-cover"
               onError={(e) => {

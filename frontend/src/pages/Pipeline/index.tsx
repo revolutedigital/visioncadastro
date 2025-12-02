@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import {
   MapPin,
   Image,
@@ -112,7 +113,7 @@ export function PipelinePage() {
 
   const loadPausedStatus = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/analysis/queue-paused-status');
+      const response = await fetch(`${API_BASE_URL}/api/analysis/queue-paused-status`);
       const data = await response.json();
       if (data.success) {
         setPausedQueues(data.paused);
@@ -124,7 +125,7 @@ export function PipelinePage() {
 
   const loadQueueStatus = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/analysis/status');
+      const response = await fetch(`${API_BASE_URL}/api/analysis/status`);
       const data = await response.json();
       if (data.success) {
         setQueueStatus(data);
@@ -138,7 +139,7 @@ export function PipelinePage() {
 
   const loadPlacesDetails = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/places/status');
+      const response = await fetch(`${API_BASE_URL}/api/places/status`);
       const data = await response.json();
       if (data.success && data.clientes) {
         setPlacesDetails({
@@ -153,7 +154,7 @@ export function PipelinePage() {
 
   const loadTipologiaStats = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/analysis/tipologia-stats');
+      const response = await fetch(`${API_BASE_URL}/api/analysis/tipologia-stats`);
       const data = await response.json();
       if (data.success) {
         setTipologiaStats({
@@ -177,7 +178,7 @@ export function PipelinePage() {
     setActionLoading(`${loadingKey}-${scope}`);
     try {
       const response = await fetch(
-        `http://localhost:4000/api/analysis/${endpoint}?force=true&scope=${scope}`,
+        `${API_BASE_URL}/api/analysis/${endpoint}?force=true&scope=${scope}`,
         { method: 'POST' }
       );
       const data = await response.json();
@@ -218,7 +219,7 @@ export function PipelinePage() {
     const action = isPaused ? 'resume' : 'pause';
 
     try {
-      const response = await fetch(`http://localhost:4000/api/analysis/${action}/${queueName}`, {
+      const response = await fetch(`${API_BASE_URL}/api/analysis/${action}/${queueName}`, {
         method: 'POST',
       });
       const data = await response.json();

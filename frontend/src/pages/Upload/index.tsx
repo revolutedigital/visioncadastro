@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
+import { API_BASE_URL } from '../../config/api';
 import {
   Upload as UploadIcon,
   FileSpreadsheet,
@@ -85,7 +86,7 @@ export function UploadPage() {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const response = await fetch('http://localhost:4000/api/upload/suggest-mapping', {
+      const response = await fetch(`${API_BASE_URL}/api/upload/suggest-mapping`, {
         method: 'POST',
         body: formData,
       });
@@ -185,7 +186,7 @@ export function UploadPage() {
       formData.append('file', file);
       formData.append('mappings', JSON.stringify(mappings));
 
-      const response = await fetch('http://localhost:4000/api/upload', {
+      const response = await fetch(`${API_BASE_URL}/api/upload`, {
         method: 'POST',
         body: formData,
       });
