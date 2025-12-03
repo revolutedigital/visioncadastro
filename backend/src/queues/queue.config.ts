@@ -84,15 +84,16 @@ if (REDIS_DISABLED) {
   console.log('📦 Inicializando filas com Redis REAL');
 
   // Configuração do Redis - suporta REDIS_URL do Railway ou config individual
+  // IMPORTANT: Não usar lazyConnect para garantir que os workers conectem imediatamente
   const redisConfig = process.env.REDIS_URL
     ? {
         // Railway Redis URL
         url: process.env.REDIS_URL,
         maxRetriesPerRequest: null,
         enableReadyCheck: false,
-        connectTimeout: 5000,
-        commandTimeout: 5000,
-        lazyConnect: true,
+        connectTimeout: 10000,
+        commandTimeout: 10000,
+        retryDelayOnFailover: 100,
         tls: process.env.REDIS_URL.startsWith('rediss://') ? {} : undefined,
       }
     : {
@@ -102,33 +103,38 @@ if (REDIS_DISABLED) {
         password: process.env.REDIS_PASSWORD || undefined,
         maxRetriesPerRequest: null,
         enableReadyCheck: false,
-        lazyConnect: true,
       };
 
   console.log('📦 Configuração Redis:', process.env.REDIS_URL ? 'Usando REDIS_URL' : `Usando ${redisConfig.host}:${redisConfig.port}`);
 
   // Criar client Redis para o Bull
+  // IMPORTANT: Não usar lazyConnect - workers precisam de conexão ativa
   const createRedisClient = (type: 'client' | 'subscriber' | 'bclient') => {
     // IMPORTANTE: ioredis aceita URL diretamente como string, NÃO como {url: ...}
     if (process.env.REDIS_URL) {
       console.log(`📦 Criando Redis client (${type}) com REDIS_URL`);
-      return new Redis(process.env.REDIS_URL, {
+      const client = new Redis(process.env.REDIS_URL, {
         maxRetriesPerRequest: null,
         enableReadyCheck: false,
-        connectTimeout: 5000,
-        commandTimeout: 5000,
-        lazyConnect: true,
+        connectTimeout: 10000,
+        commandTimeout: 10000,
+        retryDelayOnFailover: 100,
       });
+      client.on('connect', () => console.log(`✅ Redis ${type} conectado`));
+      client.on('error', (err) => console.error(`❌ Redis ${type} erro:`, err.message));
+      return client;
     }
     console.log(`📦 Criando Redis client (${type}) com host/port`);
-    return new Redis({
+    const client = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD || undefined,
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
-      lazyConnect: true,
     });
+    client.on('connect', () => console.log(`✅ Redis ${type} conectado`));
+    client.on('error', (err) => console.error(`❌ Redis ${type} erro:`, err.message));
+    return client;
   };
 
   // Opções padrão para as filas
