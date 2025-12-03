@@ -120,7 +120,6 @@ export class UploadController {
             cidade: row.cidade ? row.cidade.trim() : null,
             estado: row.estado ? row.estado.trim().toUpperCase() : null,
             cep: row.cep ? row.cep.replace(/\D/g, '') : null,
-            tipoServico: row.tipoServico ? row.tipoServico.trim() : null,
             cnpj: row.cnpj ? row.cnpj.replace(/\D/g, '') : null,
           };
 
@@ -205,10 +204,6 @@ export class UploadController {
             updateData.cep = cliente.cep;
             temAtualizacao = true;
           }
-          if (!clienteExistente.tipoServico && cliente.tipoServico) {
-            updateData.tipoServico = cliente.tipoServico;
-            temAtualizacao = true;
-          }
           if (!clienteExistente.cnpj && cliente.cnpj) {
             updateData.cnpj = cliente.cnpj;
             temAtualizacao = true;
@@ -236,7 +231,6 @@ export class UploadController {
               cidade: cliente.cidade || null,
               estado: cliente.estado || null,
               cep: cliente.cep || null,
-              tipoServico: cliente.tipoServico || null,
               cnpj: cliente.cnpj || null,
               status: 'PENDENTE',
             },
