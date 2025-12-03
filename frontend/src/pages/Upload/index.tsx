@@ -27,6 +27,7 @@ interface ColumnMapping {
 
 const REQUIRED_FIELDS = [
   { key: 'nome', label: 'Nome do Cliente', required: true },
+  { key: 'cnpj', label: 'CNPJ', required: true },
   { key: 'endereco', label: 'Endereço', required: true },
   { key: 'cidade', label: 'Cidade', required: false },
   { key: 'estado', label: 'Estado', required: false },
