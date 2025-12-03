@@ -18,35 +18,31 @@ export class CacheService {
       return;
     }
 
-    // Suporta REDIS_URL do Railway ou config individual
-    const redisConfig = process.env.REDIS_URL
-      ? {
-          // Railway Redis URL
-          url: process.env.REDIS_URL,
-          maxRetriesPerRequest: 3,
-          // Timeouts agressivos para evitar travar
-          connectTimeout: 5000,
-          commandTimeout: 5000,
-          // TLS pode ser necessário no Railway
-          tls: process.env.REDIS_URL.startsWith('rediss://') ? {} : undefined,
-          retryStrategy: (times: number) => {
-            const delay = Math.min(times * 50, 2000);
-            return delay;
-          },
-        }
-      : {
-          // Config local
-          host: process.env.REDIS_HOST || 'localhost',
-          port: parseInt(process.env.REDIS_PORT || '6379'),
-          password: process.env.REDIS_PASSWORD,
-          maxRetriesPerRequest: 3,
-          retryStrategy: (times: number) => {
-            const delay = Math.min(times * 50, 2000);
-            return delay;
-          },
-        };
-
-    this.redis = new Redis(redisConfig);
+    // IMPORTANTE: ioredis aceita URL como primeiro argumento, NÃO como {url: ...}
+    if (process.env.REDIS_URL) {
+      console.log('📦 Cache: Conectando via REDIS_URL');
+      this.redis = new Redis(process.env.REDIS_URL, {
+        maxRetriesPerRequest: 3,
+        connectTimeout: 5000,
+        commandTimeout: 5000,
+        retryStrategy: (times: number) => {
+          const delay = Math.min(times * 50, 2000);
+          return delay;
+        },
+      });
+    } else {
+      console.log('📦 Cache: Conectando via host/port');
+      this.redis = new Redis({
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+        password: process.env.REDIS_PASSWORD,
+        maxRetriesPerRequest: 3,
+        retryStrategy: (times: number) => {
+          const delay = Math.min(times * 50, 2000);
+          return delay;
+        },
+      });
+    }
 
     this.redis.on('error', (error) => {
       console.error('❌ Erro Redis:', error);

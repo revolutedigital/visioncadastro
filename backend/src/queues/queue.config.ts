@@ -109,7 +109,26 @@ if (REDIS_DISABLED) {
 
   // Criar client Redis para o Bull
   const createRedisClient = (type: 'client' | 'subscriber' | 'bclient') => {
-    return new Redis(redisConfig);
+    // IMPORTANTE: ioredis aceita URL diretamente como string, NÃO como {url: ...}
+    if (process.env.REDIS_URL) {
+      console.log(`📦 Criando Redis client (${type}) com REDIS_URL`);
+      return new Redis(process.env.REDIS_URL, {
+        maxRetriesPerRequest: null,
+        enableReadyCheck: false,
+        connectTimeout: 5000,
+        commandTimeout: 5000,
+        lazyConnect: true,
+      });
+    }
+    console.log(`📦 Criando Redis client (${type}) com host/port`);
+    return new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      password: process.env.REDIS_PASSWORD || undefined,
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+      lazyConnect: true,
+    });
   };
 
   // Opções padrão para as filas
