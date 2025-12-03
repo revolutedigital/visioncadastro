@@ -9,6 +9,7 @@ interface ColumnMapping {
   estado?: string;
   cep?: string;
   tipoServico?: string;
+  cnpj?: string;
 }
 
 export class AIParserService {
@@ -63,6 +64,7 @@ CAMPOS A IDENTIFICAR:
 - estado: Estado/UF
 - cep: CEP
 - tipoServico: Tipo de serviço/negócio
+- cnpj: CNPJ da empresa (pode estar como "CNPJ", "CPF/CNPJ", "Documento", etc.)
 
 IMPORTANTE:
 - Retorne APENAS um objeto JSON válido
@@ -78,7 +80,8 @@ Formato de resposta:
   "cidade": "nome_da_coluna" ou null,
   "estado": "nome_da_coluna" ou null,
   "cep": "nome_da_coluna" ou null,
-  "tipoServico": "nome_da_coluna" ou null
+  "tipoServico": "nome_da_coluna" ou null,
+  "cnpj": "nome_da_coluna" ou null
 }`;
 
       console.log('🤖 Solicitando identificação de colunas à IA...');
@@ -140,6 +143,7 @@ Formato de resposta:
       estado: mapping.estado ? row[mapping.estado] : '',
       cep: mapping.cep ? row[mapping.cep] : '',
       tipoServico: mapping.tipoServico ? row[mapping.tipoServico] : '',
+      cnpj: mapping.cnpj ? row[mapping.cnpj] : '',
     }));
   }
 }
