@@ -1,9 +1,20 @@
 import Queue from 'bull';
 import Redis from 'ioredis';
 
-// DEBUG: Log para verificar variáveis de ambiente
-console.log('🔍 REDIS_URL:', process.env.REDIS_URL ? 'DEFINIDO' : 'UNDEFINED');
+// ========== CRITICAL DEBUG - ENVIRONMENT VARIABLES ==========
+console.log('==========================================');
+console.log('🔥 QUEUE.CONFIG.TS CARREGANDO...');
+console.log('🔥 TIMESTAMP:', new Date().toISOString());
+console.log('==========================================');
+console.log('🔍 ALL REDIS ENV KEYS:', Object.keys(process.env).filter(k => k.includes('REDIS')));
+console.log('🔍 REDIS_URL EXISTS?:', 'REDIS_URL' in process.env);
+console.log('🔍 REDIS_URL VALUE:', process.env.REDIS_URL);
+console.log('🔍 REDIS_URL LENGTH:', process.env.REDIS_URL?.length);
+console.log('🔍 REDIS_HOST:', process.env.REDIS_HOST);
+console.log('🔍 REDIS_PORT:', process.env.REDIS_PORT);
 console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
+console.log('🔍 PORT:', process.env.PORT);
+console.log('==========================================');
 
 // CRITICAL: Se não tiver REDIS_URL em produção, NÃO tentar conectar
 const REDIS_DISABLED = !process.env.REDIS_URL && process.env.NODE_ENV === 'production';
