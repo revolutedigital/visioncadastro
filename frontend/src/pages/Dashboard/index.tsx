@@ -78,9 +78,9 @@ export function DashboardPage() {
         analysisProgress={stats.analysis.percentual}
         analysisProcessed={stats.analysis.concluidos}
         analysisTotal={stats.analysis.total}
-        tipologiaProgress={stats.enrichment?.percentual || 0}
-        tipologiaProcessed={stats.enrichment?.enriquecidos || 0}
-        tipologiaTotal={stats.enrichment?.total || 0}
+        tipologiaProgress={stats.tipologia.percentual}
+        tipologiaProcessed={stats.tipologia.classificados}
+        tipologiaTotal={stats.tipologia.total}
       />
 
       {/* Insights com Tabs (Lazy Loaded) */}

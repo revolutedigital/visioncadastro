@@ -86,10 +86,59 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir arquivos estáticos (fotos)
+// Servir arquivos estáticos (fotos) - Fallback para arquivos locais
 const photosDir = process.env.PHOTOS_DIR || path.join(__dirname, '../uploads/fotos');
-app.use('/api/fotos', express.static(photosDir));
-console.log(`📁 Servindo fotos de: ${photosDir}`);
+app.use('/api/fotos-local', express.static(photosDir));
+console.log(`📁 Servindo fotos locais de: ${photosDir}`);
+
+// Proxy de fotos do Google Places (usa photoReference do banco)
+import { PrismaClient } from '@prisma/client';
+import axios from 'axios';
+const prisma = new PrismaClient();
+
+app.get('/api/fotos/:fileName', async (req: Request, res: Response) => {
+  try {
+    const { fileName } = req.params;
+
+    // Buscar foto no banco de dados pelo fileName
+    const foto = await prisma.foto.findFirst({
+      where: { fileName },
+    });
+
+    if (!foto) {
+      return res.status(404).json({ error: 'Foto não encontrada' });
+    }
+
+    // Se não tem photoReference, retornar placeholder
+    if (!foto.photoReference) {
+      return res.status(404).json({ error: 'Photo reference não disponível' });
+    }
+
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Google Maps API key não configurada' });
+    }
+
+    // Fazer proxy da foto do Google Places
+    const googlePhotoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${foto.photoReference}&key=${apiKey}`;
+
+    const photoResponse = await axios.get(googlePhotoUrl, {
+      responseType: 'arraybuffer',
+      timeout: 30000,
+    });
+
+    // Definir headers de cache
+    res.set({
+      'Content-Type': 'image/jpeg',
+      'Cache-Control': 'public, max-age=86400', // Cache por 24h
+    });
+
+    return res.send(photoResponse.data);
+  } catch (error: any) {
+    console.error('Erro ao servir foto:', error.message);
+    return res.status(500).json({ error: 'Erro ao buscar foto' });
+  }
+});
 
 // Rota de health check
 app.get('/health', (req: Request, res: Response) => {

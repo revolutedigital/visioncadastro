@@ -28,6 +28,11 @@ export interface DashboardStats {
     pendentes: number;
     percentual: number;
   };
+  tipologia: {
+    total: number;
+    classificados: number;
+    percentual: number;
+  };
   computed: {
     totalClientes: number;
     pipelineProgress: number;
@@ -51,11 +56,12 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}) {
 
   const loadStats = useCallback(async () => {
     try {
-      const [geocodingRes, placesRes, analysisRes, enrichmentRes] = await Promise.all([
+      const [geocodingRes, placesRes, analysisRes, enrichmentRes, tipologiaRes] = await Promise.all([
         authFetch(`${API_BASE_URL}/api/geocoding/status`),
         authFetch(`${API_BASE_URL}/api/places/status`),
         authFetch(`${API_BASE_URL}/api/analysis/status`),
         authFetch(`${API_BASE_URL}/api/enrichment/status`).catch(() => null),
+        authFetch(`${API_BASE_URL}/api/analysis/tipologia-stats`).catch(() => null),
       ]);
 
       const [geocoding, places, analysis] = await Promise.all([
@@ -65,12 +71,16 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}) {
       ]);
 
       const enrichment = enrichmentRes ? await enrichmentRes.json() : null;
+      const tipologiaData = tipologiaRes ? await tipologiaRes.json() : null;
 
       const totalClientes = geocoding.clientes.total;
       const geocodingPercent = geocoding.clientes.percentualCompleto || 0;
       const placesPercent = totalClientes > 0 ? (places.clientes.processados / totalClientes) * 100 : 0;
       const analysisPercent = analysis.clientes.percentualCompleto || 0;
-      const tipologiaPercent = enrichment ? enrichment.clientes.percentualCompleto || 0 : 0;
+
+      // Tipologia vem do endpoint tipologia-stats (100% quando todos estão classificados)
+      const tipologiaClassificados = tipologiaData?.total || 0;
+      const tipologiaPercent = totalClientes > 0 ? (tipologiaClassificados / totalClientes) * 100 : 0;
 
       // Cálculo do progresso geral do pipeline (média ponderada)
       const pipelineProgress = Math.round(
@@ -119,6 +129,11 @@ export function useDashboardStats(options: UseDashboardStatsOptions = {}) {
               percentual: enrichment.clientes.percentualCompleto,
             }
           : undefined,
+        tipologia: {
+          total: totalClientes,
+          classificados: tipologiaClassificados,
+          percentual: Math.round(tipologiaPercent),
+        },
         computed: {
           totalClientes,
           pipelineProgress,

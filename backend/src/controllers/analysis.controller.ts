@@ -349,6 +349,13 @@ export class AnalysisController {
           dataQualityScore: true,
           confiabilidadeDados: true,
           scoringBreakdown: true,
+          // Campos de análise visual (Sprint 2)
+          qualidadeSinalizacao: true,
+          presencaBranding: true,
+          nivelProfissionalizacao: true,
+          publicoAlvo: true,
+          ambienteEstabelecimento: true,
+          indicadoresVisuais: true,
           fotos: {
             select: {
               id: true,
