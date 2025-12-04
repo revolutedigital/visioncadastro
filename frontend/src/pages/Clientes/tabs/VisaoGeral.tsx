@@ -180,13 +180,13 @@ export function VisaoGeral({ cliente }: VisaoGeralProps) {
                     <div className="space-y-2">
                       {breakdown.scoreRating > 0 && (
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Rating ({breakdown.rating?.toFixed(1) || 'N/A'})</span>
+                          <span className="text-gray-600">Rating ({cliente.rating?.toFixed(1) || 'N/A'})</span>
                           <span className="font-medium text-green-600">+{breakdown.scoreRating} pts</span>
                         </div>
                       )}
                       {breakdown.scoreAvaliacoes > 0 && (
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Avaliações ({breakdown.totalAvaliacoes || 0})</span>
+                          <span className="text-gray-600">Avaliações ({cliente.totalAvaliacoes || 0})</span>
                           <span className="font-medium text-green-600">+{breakdown.scoreAvaliacoes} pts</span>
                         </div>
                       )}
