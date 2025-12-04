@@ -82,7 +82,7 @@ interface PipelineStep {
 
 export function PipelinePage() {
   const [queueStatus, setQueueStatus] = useState<QueueStatus | null>(null);
-  const [placesDetails, setPlacesDetails] = useState<{processados: number, falhas: number} | null>(null);
+  const [placesDetails, setPlacesDetails] = useState<{processados: number, sucesso: number, falhas: number} | null>(null);
   const [tipologiaStats, setTipologiaStats] = useState<{total: number, mediaConfianca: number} | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -143,6 +143,7 @@ export function PipelinePage() {
       if (data.success && data.clientes) {
         setPlacesDetails({
           processados: data.clientes.processados || 0,
+          sucesso: data.clientes.sucesso || data.clientes.processados || 0, // fallback para compatibilidade
           falhas: data.clientes.falhas || 0,
         });
       }
@@ -323,14 +324,13 @@ export function PipelinePage() {
         name: 'Google Places',
         icon: Globe,
         description: 'Buscar dados do estabelecimento (fotos, rating, horários)',
-        // 🎯 VISION AI: Considera processados + falhas = 100%
-        status: placesDetails && (placesDetails.processados + placesDetails.falhas) === total && total > 0
+        // processados já inclui sucesso + falhas no backend
+        status: placesDetails && placesDetails.processados === total && total > 0
           ? 'completed'
-          : comPlaces > 0 || (placesDetails && placesDetails.falhas > 0)
+          : comPlaces > 0 || (placesDetails && placesDetails.processados > 0)
           ? 'processing'
           : 'pending',
-        // Mostra total processado (sucessos + falhas) para dar sensação de 100%
-        progress: placesDetails ? (placesDetails.processados + placesDetails.falhas) : comPlaces,
+        progress: placesDetails ? placesDetails.processados : comPlaces,
         total: total,
         color: 'green',
       },
@@ -543,11 +543,11 @@ export function PipelinePage() {
                   )}
 
                   {/* 🎯 GOOGLE PLACES: Estatísticas de sucessos/falhas */}
-                  {step.id === '3' && placesDetails && (placesDetails.processados > 0 || placesDetails.falhas > 0) && (
+                  {step.id === '3' && placesDetails && (placesDetails.sucesso > 0 || placesDetails.falhas > 0) && (
                     <div className="mt-2 flex items-center gap-2 text-xs flex-wrap">
                       <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
                         <CheckCircle className="w-3 h-3" />
-                        {placesDetails.processados} {placesDetails.processados === 1 ? 'sucesso' : 'sucessos'}
+                        {placesDetails.sucesso} {placesDetails.sucesso === 1 ? 'sucesso' : 'sucessos'}
                       </span>
                       {placesDetails.falhas > 0 && (
                         <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
