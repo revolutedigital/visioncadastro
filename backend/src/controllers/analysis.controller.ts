@@ -1436,11 +1436,12 @@ export class AnalysisController {
 
       // Se force=true, reprocessar todos com receita concluída (do escopo selecionado)
       // Senão, só processar os pendentes
+      // NOTA: Processar clientes mesmo que receita tenha falhado (FALHA também conta como "processado")
       const whereClause = force
-        ? { ...planilhaFilter, receitaStatus: { in: ['SUCESSO', 'NAO_APLICAVEL'] } }
+        ? { ...planilhaFilter, receitaStatus: { notIn: ['PENDENTE', 'PROCESSANDO'] } }
         : {
             ...planilhaFilter,
-            receitaStatus: { in: ['SUCESSO', 'NAO_APLICAVEL'] },
+            receitaStatus: { notIn: ['PENDENTE', 'PROCESSANDO'] },
             normalizacaoStatus: 'PENDENTE',
           };
 
