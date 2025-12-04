@@ -2283,4 +2283,120 @@ export class AnalysisController {
       });
     }
   }
+
+  /**
+   * Resetar clientes travados em PROCESSANDO
+   * POST /api/analysis/reset-stuck
+   *
+   * Clientes que ficaram com status PROCESSANDO por muito tempo (travados)
+   * são resetados para PENDENTE para que possam ser reprocessados.
+   */
+  async resetStuckClients(req: Request, res: Response) {
+    try {
+      const { timeoutMinutes = 30 } = req.query;
+      const timeout = parseInt(timeoutMinutes as string) || 30;
+      const cutoffDate = new Date(Date.now() - timeout * 60 * 1000);
+
+      // Buscar e resetar clientes travados em PROCESSANDO há mais de X minutos
+      const [receitaReset, normalizacaoReset] = await Promise.all([
+        // Reset Receita Federal
+        prisma.cliente.updateMany({
+          where: {
+            receitaStatus: 'PROCESSANDO',
+            receitaIniciadoEm: { lt: cutoffDate },
+          },
+          data: {
+            receitaStatus: 'PENDENTE',
+            receitaIniciadoEm: null,
+          },
+        }),
+        // Reset Normalização
+        prisma.cliente.updateMany({
+          where: {
+            normalizacaoStatus: 'PROCESSANDO',
+            normalizacaoIniciadoEm: { lt: cutoffDate },
+          },
+          data: {
+            normalizacaoStatus: 'PENDENTE',
+            normalizacaoIniciadoEm: null,
+          },
+        }),
+      ]);
+
+      const totalReset = receitaReset.count + normalizacaoReset.count;
+
+      console.log(`🔄 Reset de clientes travados: ${totalReset} clientes resetados`);
+      console.log(`   - Receita Federal: ${receitaReset.count}`);
+      console.log(`   - Normalização: ${normalizacaoReset.count}`);
+
+      return res.json({
+        success: true,
+        message: `${totalReset} clientes resetados`,
+        details: {
+          receitaReset: receitaReset.count,
+          normalizacaoReset: normalizacaoReset.count,
+          timeoutMinutes: timeout,
+        },
+      });
+    } catch (error: any) {
+      console.error('Erro ao resetar clientes travados:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Erro ao resetar clientes travados',
+        details: error.message,
+      });
+    }
+  }
+
+  /**
+   * Forçar status de um cliente para FALHA (para resolver travamentos)
+   * POST /api/analysis/force-fail/:clienteId
+   */
+  async forceFailClient(req: Request, res: Response) {
+    try {
+      const { clienteId } = req.params;
+      const { pipeline } = req.body; // 'receita' ou 'normalizacao'
+
+      if (!pipeline || !['receita', 'normalizacao'].includes(pipeline)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Pipeline inválido. Use "receita" ou "normalizacao"',
+        });
+      }
+
+      const updateData = pipeline === 'receita'
+        ? {
+            receitaStatus: 'FALHA',
+            receitaProcessadoEm: new Date(),
+            receitaErro: 'Forçado manualmente via API',
+          }
+        : {
+            normalizacaoStatus: 'FALHA',
+            normalizacaoProcessadoEm: new Date(),
+            normalizacaoErro: 'Forçado manualmente via API',
+          };
+
+      const cliente = await prisma.cliente.update({
+        where: { id: clienteId },
+        data: updateData,
+        select: { id: true, nome: true },
+      });
+
+      console.log(`⚠️ Cliente ${cliente.nome} forçado para FALHA no pipeline ${pipeline}`);
+
+      return res.json({
+        success: true,
+        message: `Cliente ${cliente.nome} forçado para FALHA`,
+        clienteId: cliente.id,
+        pipeline,
+      });
+    } catch (error: any) {
+      console.error('Erro ao forçar falha:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Erro ao forçar falha',
+        details: error.message,
+      });
+    }
+  }
 }

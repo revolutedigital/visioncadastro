@@ -27,6 +27,8 @@ router.get('/clientes', (req, res) => analysisController.listarAnalisados(req, r
 router.get('/estatisticas', (req, res) => analysisController.getEstatisticas(req, res));
 router.get('/duplicates', (req, res) => analysisController.detectDuplicates(req, res));
 router.post('/merge-duplicates', (req, res) => analysisController.mergeDuplicates(req, res));
+router.post('/reset-stuck', (req, res) => analysisController.resetStuckClients(req, res));
+router.post('/force-fail/:clienteId', (req, res) => analysisController.forceFailClient(req, res));
 router.get('/:id/resultado', (req, res) => analysisController.getAnaliseResultado(req, res));
 router.post('/:id', (req, res) => analysisController.analyzeSingle(req, res));
 
