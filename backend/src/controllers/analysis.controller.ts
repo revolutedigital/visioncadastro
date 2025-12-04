@@ -454,6 +454,22 @@ export class AnalysisController {
           dataQualityScore: cliente.dataQualityScore,
           confiabilidadeDados: cliente.confiabilidadeDados,
           scoringBreakdown: cliente.scoringBreakdown,
+          // Campos adicionais para breakdown de Qualidade de Dados
+          dataQualityBreakdown: cliente.dataQualityBreakdown,
+          camposCriticos: cliente.camposCriticos,
+          fontesValidadas: cliente.fontesValidadas,
+          camposPreenchidos: cliente.camposPreenchidos,
+          // Status das etapas do pipeline
+          placesStatus: cliente.placesStatus,
+          geocodingStatus: cliente.geocodingStatus,
+          receitaStatus: cliente.receitaStatus,
+          // Campos adicionais para Tipologia
+          ambienteEstabelecimento: cliente.ambienteEstabelecimento,
+          publicoAlvo: cliente.publicoAlvo,
+          totalFotosDisponiveis: cliente.totalFotosDisponiveis,
+          // Score breakdown de avaliações (para corrigir exibição)
+          scoreAvaliacoes: cliente.scoreAvaliacoes,
+          scoreRating: cliente.scoreRating,
         },
         fotos: fotosComAnalise,
         analiseConsolidada,
