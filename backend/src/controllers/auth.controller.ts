@@ -22,6 +22,13 @@ const USERS = [
     // Senha: revolute2024
     passwordHash: '$2a$10$YzV1234567890abcdefghijklmnopqrstuvwxyzABCDEFGH',
   },
+  {
+    id: '3',
+    email: 'admin@pepsico.com',
+    name: 'Admin PepsiCo',
+    // Senha: pepsico2024
+    passwordHash: '$2a$10$placeholder', // Será gerado automaticamente
+  },
 ];
 
 // Inicializar senhas na primeira execução
@@ -32,6 +39,7 @@ const initializeUsers = async () => {
   // Gerar hashes para as senhas padrão
   USERS[0].passwordHash = await bcrypt.hash('admin123', 10);
   USERS[1].passwordHash = await bcrypt.hash('revolute2024', 10);
+  USERS[2].passwordHash = await bcrypt.hash('pepsico2024', 10);
 
   usersInitialized = true;
   console.log('✅ Usuários de autenticação inicializados');
