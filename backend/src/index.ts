@@ -62,11 +62,30 @@ const allowedOrigins = [
 
 // CORS com lista de origens permitidas
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function(origin, callback) {
+    // Permitir requisições sem origin (ex: Postman, mobile apps)
+    if (!origin) return callback(null, true);
+
+    // Verificar se a origin está na lista de permitidas
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️ CORS bloqueado para origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400, // Cache preflight por 24h
 }));
+
+// Middleware para tratar requisições OPTIONS (preflight CORS)
+// Deve vir ANTES da autenticação
+app.options('*', (_req: Request, res: Response) => {
+  res.status(200).end();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
