@@ -60,27 +60,12 @@ const allowedOrigins = [
   'https://visionai-production.up.railway.app', // Backend Railway (para testes)
 ];
 
+// CORS com lista de origens permitidas
 app.use(cors({
-  origin: (origin, callback) => {
-    // Permitir requests sem origin (Postman, curl, mobile apps)
-    if (!origin) return callback(null, true);
-
-    // Em desenvolvimento, permitir qualquer origem
-    if (process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-
-    // Em produção, verificar whitelist
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn(`⚠️  CORS bloqueou origem: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
 app.use(express.json());
