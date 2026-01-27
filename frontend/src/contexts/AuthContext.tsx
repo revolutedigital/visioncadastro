@@ -32,11 +32,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedUser = localStorage.getItem(USER_KEY);
 
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-
-      // Verificar se o token ainda é válido
-      verifyToken(storedToken);
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setToken(storedToken);
+        setUser(parsedUser);
+        // Verificar se o token ainda é válido
+        verifyToken(storedToken);
+      } catch {
+        // JSON inválido, limpar tudo
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        setIsLoading(false);
+      }
     } else {
       setIsLoading(false);
     }
@@ -56,16 +63,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(data.user);
           setToken(tokenToVerify);
         } else {
-          // Token inválido, limpar
-          logout();
+          // Token inválido, limpar sem causar redirect
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          setToken(null);
+          setUser(null);
         }
       } else {
-        // Token expirado ou inválido
-        logout();
+        // Token expirado ou inválido - limpar sem causar redirect
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        setToken(null);
+        setUser(null);
       }
     } catch (error) {
       console.error('Erro ao verificar token:', error);
-      // Em caso de erro de rede, manter o token (pode ser offline)
+      // Em caso de erro de rede, limpar para evitar loop
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      setToken(null);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }

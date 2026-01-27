@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { API_BASE_URL } from '../config/api';
 import { authFetch } from '../utils/api';
+import { useAuth } from './AuthContext';
 
 interface ProcessingStatus {
   geocoding: { total: number; processed: number; percentage: number };
@@ -32,15 +33,26 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatus | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
-  // Load processing status on mount and set up polling
+  // Load processing status on mount and set up polling - ONLY when authenticated
   useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      return; // Don't fetch if not authenticated
+    }
+
     refreshProcessingStatus();
     const interval = setInterval(refreshProcessingStatus, 15000); // Poll every 15 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   const refreshProcessingStatus = async () => {
+    // Verificar token antes de fazer qualquer chamada
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      return; // Não fazer chamadas sem token
+    }
+
     try {
       const [geocodingRes, placesRes, analysisRes, enrichmentRes] = await Promise.all([
         authFetch(`${API_BASE_URL}/api/geocoding/status`),

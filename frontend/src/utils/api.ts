@@ -25,11 +25,11 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
     headers,
   });
 
-  // Se retornar 401, redirecionar para login
+  // Se retornar 401, limpar tokens (mas não redirecionar - deixa o React Router fazer isso)
   if (response.status === 401) {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem('auth_user');
-    window.location.href = '/login';
+    // Não fazer redirect aqui para evitar loops - o ProtectedRoute vai redirecionar
     throw new Error('Sessao expirada');
   }
 
