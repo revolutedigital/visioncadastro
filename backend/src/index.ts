@@ -83,7 +83,8 @@ app.use(cors({
 
 // Middleware para tratar requisições OPTIONS (preflight CORS)
 // Deve vir ANTES da autenticação
-app.options('*', (_req: Request, res: Response) => {
+// Express 5 usa path-to-regexp v8+ que requer '{*path}' em vez de '*'
+app.options('{*path}', (_req: Request, res: Response) => {
   res.status(200).end();
 });
 
