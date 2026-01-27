@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import cors from 'cors';
+
 import dotenv from 'dotenv';
 import path from 'path';
 import uploadRoutes from './routes/upload.routes';
@@ -60,26 +60,26 @@ const allowedOrigins = [
   'https://visionai-production.up.railway.app', // Backend Railway (para testes)
 ];
 
-// CORS com lista de origens permitidas
-app.use(cors({
-  origin: function(origin, callback) {
-    // Permitir requisições sem origin (ex: Postman, mobile apps)
-    if (!origin) return callback(null, true);
+// CORS manual middleware (cors@2.8.5 não funciona bem com Express 5)
+app.use((req: Request, res: Response, next) => {
+  const origin = req.headers.origin as string | undefined;
 
-    // Verificar se a origin está na lista de permitidas
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn(`⚠️ CORS bloqueado para origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 86400, // Cache preflight por 24h
-}));
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
+
+  // Responder preflight imediatamente
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
