@@ -76,16 +76,31 @@ const photosDir = process.env.PHOTOS_DIR || path.join(__dirname, '../uploads/fot
 app.use('/api/fotos-local', express.static(photosDir));
 console.log(`📁 Servindo fotos locais de: ${photosDir}`);
 
-// Proxy de fotos do Google Places (usa photoReference do banco)
+// Servir fotos: disco local primeiro, fallback para Google Places
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
+import fs from 'fs/promises';
 const prisma = new PrismaClient();
 
 app.get('/api/fotos/:fileName', async (req: Request, res: Response) => {
   try {
     const { fileName } = req.params;
+    const filePath = path.join(photosDir, fileName);
 
-    // Buscar foto no banco de dados pelo fileName
+    // 1. Tentar servir do disco local (persistente)
+    try {
+      await fs.access(filePath);
+      res.set({
+        'Content-Type': 'image/jpeg',
+        'Cache-Control': 'public, max-age=604800', // Cache 7 dias
+      });
+      const fileBuffer = await fs.readFile(filePath);
+      return res.send(fileBuffer);
+    } catch {
+      // Arquivo não existe no disco, tentar buscar do Google
+    }
+
+    // 2. Buscar foto no banco para obter photoReference
     const foto = await prisma.foto.findFirst({
       where: { fileName },
     });
@@ -94,7 +109,6 @@ app.get('/api/fotos/:fileName', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Foto não encontrada' });
     }
 
-    // Se não tem photoReference, retornar placeholder
     if (!foto.photoReference) {
       return res.status(404).json({ error: 'Photo reference não disponível' });
     }
@@ -104,7 +118,7 @@ app.get('/api/fotos/:fileName', async (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Google Maps API key não configurada' });
     }
 
-    // Fazer proxy da foto do Google Places
+    // 3. Buscar do Google Places e salvar localmente para persistência
     const googlePhotoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${foto.photoReference}&key=${apiKey}`;
 
     const photoResponse = await axios.get(googlePhotoUrl, {
@@ -112,10 +126,18 @@ app.get('/api/fotos/:fileName', async (req: Request, res: Response) => {
       timeout: 30000,
     });
 
-    // Definir headers de cache
+    // Salvar no disco para próximas requisições
+    try {
+      await fs.mkdir(photosDir, { recursive: true });
+      await fs.writeFile(filePath, photoResponse.data);
+      console.log(`💾 Foto salva no disco: ${fileName}`);
+    } catch (saveError: any) {
+      console.warn(`⚠️ Não foi possível salvar foto no disco: ${saveError.message}`);
+    }
+
     res.set({
       'Content-Type': 'image/jpeg',
-      'Cache-Control': 'public, max-age=86400', // Cache por 24h
+      'Cache-Control': 'public, max-age=604800',
     });
 
     return res.send(photoResponse.data);
