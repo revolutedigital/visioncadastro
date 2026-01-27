@@ -81,13 +81,6 @@ app.use(cors({
   maxAge: 86400, // Cache preflight por 24h
 }));
 
-// Middleware para tratar requisições OPTIONS (preflight CORS)
-// Deve vir ANTES da autenticação
-// Express 5 usa path-to-regexp v8+ que requer '{*path}' em vez de '*'
-app.options('{*path}', (_req: Request, res: Response) => {
-  res.status(200).end();
-});
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
