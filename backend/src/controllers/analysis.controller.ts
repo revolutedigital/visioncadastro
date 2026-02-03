@@ -1445,10 +1445,10 @@ export class AnalysisController {
       });
 
       // Adicionar todos à fila de Document Lookup (CNPJA + SERPRO)
-      // CNPJA suporta maior volume que ReceitaWS
+      // CNPJA API paga suporta alto volume - delay mínimo
       const useNewQueue = process.env.USE_CNPJA !== 'false';
       const queue = useNewQueue ? documentLookupQueue : receitaQueue;
-      const delayPerJob = useNewQueue ? 2000 : 20000; // 2s CNPJA vs 20s ReceitaWS
+      const delayPerJob = useNewQueue ? 200 : 20000; // 200ms CNPJA (paga) vs 20s ReceitaWS
 
       const jobs = await Promise.all(
         clientesPendentes.map((cliente, index) =>

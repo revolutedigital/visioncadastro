@@ -23,7 +23,8 @@ interface DocumentLookupJobResult {
   error?: string;
 }
 
-documentLookupQueue.process(async (job: Job<DocumentLookupJobData>): Promise<DocumentLookupJobResult> => {
+// Concurrency 5 = processa 5 CNPJs em paralelo (CNPJA API paga suporta)
+documentLookupQueue.process(5, async (job: Job<DocumentLookupJobData>): Promise<DocumentLookupJobResult> => {
   const { clienteId, loteId } = job.data;
 
   try {
