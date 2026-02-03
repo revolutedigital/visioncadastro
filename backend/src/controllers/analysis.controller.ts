@@ -2458,19 +2458,27 @@ export class AnalysisController {
    */
   async getTipologiaStats(req: Request, res: Response) {
     try {
-      // Contar total de clientes com tipologia
+      // Contar total de clientes com tipologia (analisados)
       const totalComTipologia = await prisma.cliente.count({
         where: { tipologia: { not: null } },
       });
 
-      // Se não tem nenhum, retornar vazio
-      if (totalComTipologia === 0) {
-        return res.json({
-          success: true,
-          total: 0,
-          mediaConfianca: 0,
-        });
-      }
+      // Contar clientes ELEGÍVEIS para Arca Analyst:
+      // - Clientes que já passaram pelo Places (sucesso ou falha) OU
+      // - Clientes com fotos analisadas OU
+      // - Clientes com geocoding completo
+      const totalElegivel = await prisma.cliente.count({
+        where: {
+          OR: [
+            { placesStatus: { in: ['SUCESSO', 'FALHA', 'NAO_ENCONTRADO'] } },
+            { fotos: { some: { analisadaPorIA: true } } },
+            { latitude: { not: null } },
+          ],
+        },
+      });
+
+      // Clientes pendentes de análise (elegíveis mas sem tipologia)
+      const pendentes = totalElegivel - totalComTipologia;
 
       // Calcular média de confiança
       const result = await prisma.cliente.aggregate({
@@ -2486,6 +2494,8 @@ export class AnalysisController {
       return res.json({
         success: true,
         total: totalComTipologia,
+        totalElegivel,
+        pendentes: Math.max(0, pendentes),
         mediaConfianca: Math.round(result._avg.tipologiaConfianca || 0),
       });
     } catch (error: any) {

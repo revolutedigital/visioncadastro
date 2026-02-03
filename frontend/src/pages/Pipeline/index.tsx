@@ -89,7 +89,7 @@ interface PipelineStep {
 export function PipelinePage() {
   const [queueStatus, setQueueStatus] = useState<QueueStatus | null>(null);
   const [placesDetails, setPlacesDetails] = useState<{processados: number, sucesso: number, falhas: number} | null>(null);
-  const [tipologiaStats, setTipologiaStats] = useState<{total: number, mediaConfianca: number} | null>(null);
+  const [tipologiaStats, setTipologiaStats] = useState<{total: number, totalElegivel: number, pendentes: number, mediaConfianca: number} | null>(null);
   const [loading, setLoading] = useState(true);
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -170,6 +170,8 @@ export function PipelinePage() {
       if (data.success) {
         setTipologiaStats({
           total: data.total || 0,
+          totalElegivel: data.totalElegivel || data.total || 0,
+          pendentes: data.pendentes || 0,
           mediaConfianca: data.mediaConfianca || 0,
         });
       }
@@ -319,13 +321,13 @@ export function PipelinePage() {
         name: 'Arca Analyst',
         icon: Tags,
         description: 'Agente IA valida cadastro cruzando TODAS as fontes e dá veredito',
-        status: tipologiaStats && tipologiaStats.total === total && total > 0
+        status: tipologiaStats && tipologiaStats.totalElegivel > 0 && tipologiaStats.total >= tipologiaStats.totalElegivel
           ? 'completed'
           : tipologiaStats && tipologiaStats.total > 0
           ? 'processing'
           : 'pending',
         progress: tipologiaStats?.total || 0,
-        total: total,
+        total: tipologiaStats?.totalElegivel || total,
         color: 'pink',
       },
     ];
@@ -634,16 +636,26 @@ export function PipelinePage() {
               )}
 
               {/* Step 5: Arca Analyst */}
-              {step.id === '5' && tipologiaStats && tipologiaStats.total > 0 && (
+              {step.id === '5' && tipologiaStats && (tipologiaStats.total > 0 || tipologiaStats.pendentes > 0) && (
                 <div className="mt-2 ml-12 flex items-center gap-2 text-xs flex-wrap">
-                  <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
-                    <CheckCircle className="w-3 h-3" />
-                    {tipologiaStats.total} analisados
-                  </span>
-                  <span className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
-                    <Brain className="w-3 h-3" />
-                    {tipologiaStats.mediaConfianca}% confiança média
-                  </span>
+                  {tipologiaStats.total > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
+                      <CheckCircle className="w-3 h-3" />
+                      {tipologiaStats.total} analisados
+                    </span>
+                  )}
+                  {tipologiaStats.pendentes > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
+                      <Clock className="w-3 h-3" />
+                      {tipologiaStats.pendentes} pendentes
+                    </span>
+                  )}
+                  {tipologiaStats.total > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
+                      <Brain className="w-3 h-3" />
+                      {tipologiaStats.mediaConfianca}% confiança média
+                    </span>
+                  )}
                 </div>
               )}
 
