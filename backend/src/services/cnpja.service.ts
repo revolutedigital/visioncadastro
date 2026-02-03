@@ -96,12 +96,13 @@ export class CnpjaService {
       }
 
       // Chamada API: 3 créditos (receita + simples + registrations/CCC)
+      console.log(`🔍 CNPJA: consultando ${cnpjLimpo}...`);
       const response = await axios.get(
         `${this.baseUrl}/office/${cnpjLimpo}`,
         {
           params: {
             simples: true,
-            registrations: true,
+            registrations: 'BR', // ORIGIN=UF do CNPJ, ALL=todas UFs, BR=todas
           },
           headers: {
             Authorization: this.apiKey,
@@ -109,6 +110,7 @@ export class CnpjaService {
           timeout: 30000,
         }
       );
+      console.log(`✅ CNPJA: sucesso para ${cnpjLimpo}`);
 
       const d = response.data;
 
