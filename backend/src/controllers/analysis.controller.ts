@@ -143,6 +143,7 @@ export class AnalysisController {
     try {
       // Tentar obter estatísticas das filas - valores padrão zero se falhar
       let receitaWaiting = 0, receitaActive = 0;
+      let documentLookupWaiting = 0, documentLookupActive = 0;
       let normalizationWaiting = 0, normalizationActive = 0;
       let geocodingWaiting = 0, geocodingActive = 0;
       let placesWaiting = 0, placesActive = 0;
@@ -160,6 +161,8 @@ export class AnalysisController {
           const results = await Promise.all([
             receitaQueue.getWaitingCount().catch(() => -1),
             receitaQueue.getActiveCount().catch(() => -1),
+            documentLookupQueue.getWaitingCount().catch(() => -1),
+            documentLookupQueue.getActiveCount().catch(() => -1),
             normalizationQueue.getWaitingCount().catch(() => -1),
             normalizationQueue.getActiveCount().catch(() => -1),
             geocodingQueue.getWaitingCount().catch(() => -1),
@@ -182,6 +185,8 @@ export class AnalysisController {
           [
             receitaWaiting,
             receitaActive,
+            documentLookupWaiting,
+            documentLookupActive,
             normalizationWaiting,
             normalizationActive,
             geocodingWaiting,
@@ -271,6 +276,10 @@ export class AnalysisController {
           receita: {
             aguardando: receitaWaiting,
             processando: receitaActive,
+          },
+          documentLookup: {
+            aguardando: documentLookupWaiting,
+            processando: documentLookupActive,
           },
           normalization: {
             aguardando: normalizationWaiting,

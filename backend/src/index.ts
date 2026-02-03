@@ -25,9 +25,10 @@ import './workers/places.worker';
 import './workers/analysis.worker';
 import './workers/enrichment.worker';
 import './workers/tipologia.worker';
+import './workers/document-lookup.worker';
 
 // Import das filas para despausar ao iniciar
-import { geocodingQueue, receitaQueue, normalizationQueue, placesQueue, analysisQueue, tipologiaQueue } from './queues/queue.config';
+import { geocodingQueue, receitaQueue, normalizationQueue, placesQueue, analysisQueue, tipologiaQueue, documentLookupQueue, duplicateDetectionQueue } from './queues/queue.config';
 
 // Despausar todas as filas ao iniciar (caso tenham sido pausadas em sessão anterior)
 async function resumeAllQueues() {
@@ -38,6 +39,8 @@ async function resumeAllQueues() {
     await placesQueue.resume();
     await analysisQueue.resume();
     await tipologiaQueue.resume();
+    await documentLookupQueue.resume();
+    await duplicateDetectionQueue.resume();
     console.log('✅ Todas as filas despausadas e prontas para processar');
   } catch (error) {
     console.error('⚠️  Erro ao despausar filas:', error);
@@ -252,6 +255,8 @@ async function gracefulShutdown(signal: string) {
       placesQueue.pause(),
       analysisQueue.pause(),
       tipologiaQueue.pause(),
+      documentLookupQueue.pause(),
+      duplicateDetectionQueue.pause(),
     ]);
 
     // 3. Desconectar Prisma
