@@ -172,26 +172,27 @@ export class UploadController {
       let clientesPulados = 0;
 
       for (const cliente of parseResult.data) {
-        // Normalizar nome para detecção de duplicatas
-        const nomeNormalizado = cliente.nome
-          .toLowerCase()
-          .trim()
-          .replace(/\s+/g, ' ')
-          .replace(/[^\w\s]/g, '');
+        // Buscar cliente existente - prioridade: CNPJ, depois nome+endereco
+        let clienteExistente = null;
 
-        // Buscar cliente existente com nome similar
-        const clienteExistente = await prisma.cliente.findFirst({
-          where: {
-            OR: [
-              {
-                AND: [
-                  { nome: { contains: cliente.nome.substring(0, 20), mode: 'insensitive' } },
-                  { endereco: { contains: cliente.endereco.substring(0, 20), mode: 'insensitive' } },
-                ],
-              },
-            ],
-          },
-        });
+        // 1. Buscar por CNPJ (mais confiável)
+        if (cliente.cnpj) {
+          clienteExistente = await prisma.cliente.findFirst({
+            where: { cnpj: cliente.cnpj },
+          });
+        }
+
+        // 2. Se não tem CNPJ ou não achou, buscar por nome+endereco (se tiver)
+        if (!clienteExistente && cliente.nome && cliente.endereco) {
+          clienteExistente = await prisma.cliente.findFirst({
+            where: {
+              AND: [
+                { nome: { contains: cliente.nome.substring(0, 20), mode: 'insensitive' } },
+                { endereco: { contains: cliente.endereco.substring(0, 20), mode: 'insensitive' } },
+              ],
+            },
+          });
+        }
 
         if (clienteExistente) {
           // Cliente duplicado encontrado - atualizar apenas campos vazios
