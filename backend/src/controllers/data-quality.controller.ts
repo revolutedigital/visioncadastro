@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { DataQualityService } from '../services/data-quality.service';
+import { dataSourceService } from '../services/data-source.service';
 
 const dataQualityService = new DataQualityService();
 
@@ -83,6 +84,54 @@ export async function updateClienteQuality(req: Request, res: Response) {
     });
   } catch (error: any) {
     console.error('Erro ao atualizar qualidade do cliente:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * GET /api/data-quality/:id/fontes
+ * Retorna mapa completo de fontes de dados (NOVO)
+ *
+ * PRINCÍPIO: O único dado confiável da planilha é o CNPJ/CPF
+ * Todo o restante deve vir de fontes validadas
+ */
+export async function getClienteFontes(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const contexto = await dataSourceService.buildSourceMap(id);
+    res.json(contexto);
+  } catch (error: any) {
+    console.error('Erro ao obter fontes do cliente:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * GET /api/data-quality/:id/analise-real
+ * Retorna análise de qualidade baseada em FONTES (não apenas campos preenchidos)
+ */
+export async function getClienteAnaliseReal(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const analise = await dataQualityService.analyzeWithSourceAwareness(id);
+    res.json(analise);
+  } catch (error: any) {
+    console.error('Erro ao analisar qualidade real do cliente:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * GET /api/data-quality/:id/contexto-arca
+ * Retorna contexto estruturado para o Arca Analyst
+ */
+export async function getContextoArcaAnalyst(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const contexto = await dataQualityService.getContextoArcaAnalyst(id);
+    res.json(contexto);
+  } catch (error: any) {
+    console.error('Erro ao obter contexto Arca Analyst:', error);
     res.status(500).json({ error: error.message });
   }
 }

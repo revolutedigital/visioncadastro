@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { dataSourceService, ContextoArcaAnalyst, FonteConfianca } from './data-source.service';
 
 const prisma = new PrismaClient();
 
@@ -473,5 +474,94 @@ export class DataQualityService {
       topPrioridades: topPrioridades.slice(0, 20),
       camposMaisFaltando,
     };
+  }
+
+  /**
+   * NOVO: Análise de qualidade baseada em FONTES
+   *
+   * PRINCÍPIO: O único dado confiável da planilha é o CNPJ/CPF
+   * Todo o restante deve vir de fontes validadas (CNPJA, Google, SERPRO)
+   */
+  async analyzeWithSourceAwareness(clienteId: string): Promise<{
+    contexto: ContextoArcaAnalyst;
+    qualidadeTradicional: DataQualityReport;
+    qualidadeReal: {
+      score: number;
+      classificacao: 'BAIXA' | 'MEDIA' | 'ALTA' | 'EXCELENTE';
+      mensagem: string;
+      fontesDados: string[];
+      alertasCriticos: string[];
+      dadosConfiados: string[];
+      dadosNaoConfiados: string[];
+    };
+  }> {
+    // Obter contexto completo de fontes
+    const contexto = await dataSourceService.buildSourceMap(clienteId);
+
+    // Obter análise tradicional (para comparação)
+    const qualidadeTradicional = await this.analyzeDataQuality(clienteId);
+
+    // Calcular qualidade REAL baseada em fontes
+    const mapa = contexto.mapaFontes;
+    const campos = Object.values(mapa);
+
+    // Campos que precisam estar validados por fontes externas
+    const camposCriticos = ['documento', 'nome', 'endereco', 'cidade', 'estado'];
+    const camposComerciais = ['situacaoReceita', 'rating', 'telefone'];
+
+    const dadosConfiados: string[] = [];
+    const dadosNaoConfiados: string[] = [];
+
+    campos.forEach(campo => {
+      if (campo.confianca >= FonteConfianca.CLAUDE_VISION) {
+        dadosConfiados.push(`${campo.label} (${campo.fonte}: ${campo.confianca}%)`);
+      } else if (campo.valor) {
+        dadosNaoConfiados.push(`${campo.label} - apenas planilha (${campo.confianca}%)`);
+      }
+    });
+
+    // Score baseado em confiança real das fontes
+    const somaConfianca = campos.reduce((acc, c) => acc + c.confianca, 0);
+    const scoreReal = Math.round(somaConfianca / campos.length);
+
+    // Classificação
+    let classificacao: 'BAIXA' | 'MEDIA' | 'ALTA' | 'EXCELENTE';
+    if (scoreReal >= 80) classificacao = 'EXCELENTE';
+    else if (scoreReal >= 65) classificacao = 'ALTA';
+    else if (scoreReal >= 45) classificacao = 'MEDIA';
+    else classificacao = 'BAIXA';
+
+    // Mensagem explicativa
+    let mensagem = '';
+    if (classificacao === 'EXCELENTE') {
+      mensagem = 'Cadastro validado por múltiplas fontes oficiais. Alta confiabilidade.';
+    } else if (classificacao === 'ALTA') {
+      mensagem = 'Cadastro com boa cobertura de fontes validadas. Alguns dados podem precisar de verificação.';
+    } else if (classificacao === 'MEDIA') {
+      mensagem = 'Cadastro parcialmente validado. Recomenda-se enriquecimento de dados.';
+    } else {
+      mensagem = 'Cadastro com baixa validação. A maioria dos dados vem apenas da planilha (não confiável).';
+    }
+
+    return {
+      contexto,
+      qualidadeTradicional,
+      qualidadeReal: {
+        score: scoreReal,
+        classificacao,
+        mensagem,
+        fontesDados: contexto.resumo.fontesValidadas,
+        alertasCriticos: contexto.resumo.alertas.filter(a => a.includes('🔴')),
+        dadosConfiados,
+        dadosNaoConfiados,
+      },
+    };
+  }
+
+  /**
+   * Retorna o contexto completo para o Arca Analyst
+   */
+  async getContextoArcaAnalyst(clienteId: string): Promise<ContextoArcaAnalyst> {
+    return dataSourceService.buildSourceMap(clienteId);
   }
 }
