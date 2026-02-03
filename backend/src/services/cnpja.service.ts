@@ -66,6 +66,10 @@ export class CnpjaService {
     this.apiKey = process.env.CNPJA_API_KEY || '';
     if (!this.apiKey) {
       console.warn('⚠️  CNPJA_API_KEY não configurada');
+    } else {
+      // Log seguro - mostra apenas início e fim da chave
+      const keyPreview = `${this.apiKey.substring(0, 8)}...${this.apiKey.substring(this.apiKey.length - 4)}`;
+      console.log(`✅ CNPJA_API_KEY configurada: ${keyPreview} (${this.apiKey.length} chars)`);
     }
   }
 
@@ -206,7 +210,15 @@ export class CnpjaService {
       return result;
     } catch (error: any) {
       const status = error.response?.status;
-      const message = error.response?.data?.message || error.message;
+      const data = error.response?.data;
+      const message = data?.message || data?.error || error.message;
+
+      // Log detalhado do erro
+      console.error(`❌ CNPJA ERRO para CNPJ ${cnpj}:`);
+      console.error(`   - Status HTTP: ${status || 'N/A'}`);
+      console.error(`   - Mensagem: ${message}`);
+      console.error(`   - Response data:`, JSON.stringify(data || {}, null, 2));
+      console.error(`   - API Key presente: ${!!this.apiKey} (len=${this.apiKey?.length || 0})`);
 
       if (status === 404) {
         return { success: false, error: 'CNPJ não encontrado na Receita Federal' };
@@ -214,15 +226,17 @@ export class CnpjaService {
       if (status === 429) {
         return { success: false, error: 'Rate limit CNPJA atingido. Tente novamente em instantes.' };
       }
-      if (status === 401) {
-        return { success: false, error: 'CNPJA_API_KEY inválida ou expirada.' };
+      if (status === 401 || status === 403) {
+        return { success: false, error: `CNPJA_API_KEY inválida ou sem permissão (${status})` };
       }
       if (status === 400) {
-        return { success: false, error: 'CNPJ com formato inválido ou dígito verificador incorreto' };
+        return { success: false, error: `CNPJ com formato inválido: ${message}` };
+      }
+      if (status === 402) {
+        return { success: false, error: 'Créditos CNPJA esgotados. Recarregue sua conta.' };
       }
 
-      console.error(`❌ Erro CNPJA para CNPJ ${cnpj}:`, message);
-      return { success: false, error: `Erro ao consultar CNPJA: ${message}` };
+      return { success: false, error: `Erro CNPJA (${status || 'network'}): ${message}` };
     }
   }
 
