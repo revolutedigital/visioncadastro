@@ -57,11 +57,11 @@ export class ClaudeService {
     this.apiKey = process.env.ANTHROPIC_API_KEY || '';
     this.photosDir = process.env.PHOTOS_DIR || path.join(__dirname, '../../uploads/fotos');
 
-    // 💰 HÍBRIDO: Haiku para análise visual (barato), Sonnet para tipologia (qualidade)
+    // 💰 HÍBRIDO: Haiku para análise visual, Sonnet para tipologia (qualidade)
     const modelPreference = process.env.CLAUDE_VISION_MODEL || 'haiku';
     this.visionModel = modelPreference === 'sonnet'
-      ? 'claude-3-5-sonnet-20241022'  // Qualidade máxima ($3.00/$15.00)
-      : 'claude-3-5-haiku-20241022';   // 73% mais barato ($0.80/$4.00)
+      ? 'claude-sonnet-4-5-20250929'  // Sonnet 4.5 - Qualidade máxima ($3.00/$15.00)
+      : 'claude-haiku-4-5-20251001';   // Haiku 4.5 - Mais inteligente ($1.00/$5.00)
 
     console.log(`💰 Claude Vision Model: ${this.visionModel} (${modelPreference})`);
 

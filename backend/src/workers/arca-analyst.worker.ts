@@ -86,7 +86,7 @@ tipologiaQueue.process('classify-tipologia', async (job: Job<ArcaAnalystJobData>
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 2048,
+      max_tokens: 4096,
       temperature: 0.3,
       messages: [
         {

@@ -76,8 +76,8 @@ export class PhotosCrossValidationService {
   async analyzeWithClaude(imageBase64: string): Promise<PhotoAnalysisResult> {
     try {
       const response = await this.anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 500,
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 1024,
         messages: [
           {
             role: 'user',
@@ -186,8 +186,8 @@ Responda APENAS com a categoria em minúsculo.`,
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4-vision-preview',
-        max_tokens: 300,
+        model: 'gpt-5.2',
+        max_tokens: 512,
         messages: [
           {
             role: 'user',

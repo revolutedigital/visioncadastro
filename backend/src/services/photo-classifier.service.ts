@@ -28,7 +28,7 @@ export class PhotoClassifierService {
       const base64Image = await this.imageToBase64(imagePath);
 
       const message = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307', // Modelo mais barato
+        model: 'claude-haiku-4-5-20251001', // Haiku 4.5 - mais inteligente
         max_tokens: 150, // Resposta curta
         messages: [
           {

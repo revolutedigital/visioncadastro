@@ -259,7 +259,7 @@ async function normalizarComClaude(
     console.log(`🤖 [1/3] Chamando Claude IA...`);
 
     const response = await anthropic.messages.create({
-      model: 'claude-3-5-haiku-20241022',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 500,
       temperature: 0,
       messages: [{ role: 'user', content: prompt }],
@@ -300,7 +300,7 @@ async function normalizarComChatGPT(
     console.log(`💬 [2/3] Chamando ChatGPT...`);
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-mini',
       max_tokens: 500,
       temperature: 0,
       messages: [{ role: 'user', content: prompt }],

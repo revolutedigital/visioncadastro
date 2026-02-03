@@ -91,7 +91,7 @@ Endereço normalizado (sem explicações):`;
 
       try {
         const response = await this.anthropic.messages.create({
-          model: 'claude-3-5-haiku-20241022', // Modelo mais rápido e barato
+          model: 'claude-haiku-4-5-20251001', // Haiku 4.5 - mais inteligente
           max_tokens: 500,
           temperature: 0, // Determinístico
           messages: [
