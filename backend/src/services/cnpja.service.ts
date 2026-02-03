@@ -114,8 +114,20 @@ export class CnpjaService {
 
       const d = response.data;
 
+      // DEBUG: Log da resposta completa de endereço
+      console.log(`📍 CNPJA ADDRESS DEBUG para ${cnpjLimpo}:`);
+      console.log(`   - d.address existe? ${!!d.address}`);
+      console.log(`   - d.address raw:`, JSON.stringify(d.address || {}, null, 2));
+
       // Mapear resposta CNPJA para nosso formato
       const address = d.address || {};
+
+      // DEBUG: campos individuais
+      console.log(`   - street: "${address.street || '(vazio)'}"`);
+      console.log(`   - number: "${address.number || '(vazio)'}"`);
+      console.log(`   - city: "${address.city || '(vazio)'}"`);
+      console.log(`   - state: "${address.state || '(vazio)'}"`);
+
       const enderecoCompleto = [
         address.street,
         address.number,
@@ -127,6 +139,12 @@ export class CnpjaService {
       ]
         .filter(Boolean)
         .join(', ');
+
+      console.log(`   - enderecoCompleto montado: "${enderecoCompleto || '(VAZIO!)'}"`);
+
+      if (!enderecoCompleto) {
+        console.warn(`⚠️  CNPJA: Endereço VAZIO para CNPJ ${cnpjLimpo}!`);
+      }
 
       const result: CnpjaResult = {
         success: true,

@@ -93,13 +93,50 @@ normalizationQueue.process(5, async (job: Job<NormalizationJobData>): Promise<No
     console.log(`🔄 NORMALIZAÇÃO TRIPLA: ${cliente.nome}`);
     console.log(`${'='.repeat(60)}`);
 
-    const enderecoOriginal = cliente.enderecoReceita || cliente.endereco;
+    const enderecoOriginal = cliente.enderecoReceita || cliente.endereco || '';
     const cidadeOriginal = cliente.cidade || '';
     const estadoOriginal = cliente.estado || '';
 
-    console.log(`📍 Endereço original: ${enderecoOriginal}`);
-    console.log(`🏙️  Cidade original: ${cidadeOriginal}`);
-    console.log(`🗺️  Estado original: ${estadoOriginal}`);
+    console.log(`📍 Endereço original: ${enderecoOriginal || '(VAZIO)'}`);
+    console.log(`🏙️  Cidade original: ${cidadeOriginal || '(VAZIO)'}`);
+    console.log(`🗺️  Estado original: ${estadoOriginal || '(VAZIO)'}`);
+    console.log(`   - enderecoReceita (CNPJA): "${cliente.enderecoReceita || '(NULL)'}"`);
+    console.log(`   - endereco (planilha): "${cliente.endereco || '(NULL)'}"`);
+
+    // ===== TRATAMENTO DE ENDEREÇO VAZIO =====
+    if (!enderecoOriginal.trim()) {
+      console.warn(`⚠️  ENDEREÇO VAZIO para ${cliente.nome}!`);
+      console.warn(`   - Não há endereço na planilha E CNPJA não retornou endereço`);
+      console.warn(`   - Marcando como INCOMPLETO e encadeando para geocoding mesmo assim`);
+
+      // Salvar status de dados incompletos
+      await prisma.cliente.update({
+        where: { id: clienteId },
+        data: {
+          normalizacaoStatus: 'INCOMPLETO',
+          normalizacaoProcessadoEm: new Date(),
+          normalizacaoErro: 'Endereço vazio - dados insuficientes para normalização',
+          // Manter cidade/estado se existirem
+          cidadeNormalizada: cidadeOriginal || null,
+          estadoNormalizado: estadoOriginal || null,
+          normalizacaoConfianca: 0,
+          normalizacaoFonte: 'nenhuma',
+        },
+      });
+
+      // Encadear para geocoding mesmo assim (vai usar cidade/estado se tiver)
+      await geocodingQueue.add(
+        { clienteId, loteId },
+        { delay: 100 }
+      );
+
+      return {
+        success: false,
+        clienteId,
+        nome: cliente.nome,
+        error: 'Endereço vazio - dados insuficientes',
+      };
+    }
 
     // Executar as 3 normalizações em paralelo
     console.log(`\n🎯 ===== VISION AI - CRUZAMENTO TRIPLO =====`);

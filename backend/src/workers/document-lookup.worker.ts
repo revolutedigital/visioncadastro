@@ -74,6 +74,14 @@ documentLookupQueue.process(5, async (job: Job<DocumentLookupJobData>): Promise<
       if (result.success && result.data) {
         const d = result.data;
 
+        // DEBUG: Log detalhado do que será salvo
+        console.log(`💾 SALVANDO CNPJA para ${cliente.nome}:`);
+        console.log(`   - enderecoReceita (CNPJA): "${d.enderecoCompleto || '(VAZIO!)'}"`);
+        console.log(`   - endereco original planilha: "${cliente.endereco || '(VAZIO!)'}"`);
+        console.log(`   - cidade original: "${cliente.cidade || '(VAZIO!)'}" | estado: "${cliente.estado || '(VAZIO!)'}"`);
+        console.log(`   - razaoSocial: "${d.razaoSocial || '(VAZIO!)'}"`);
+        console.log(`   - situacaoReceita: "${d.situacao || '(VAZIO!)'}"`);
+
         await prisma.cliente.update({
           where: { id: clienteId },
           data: {
@@ -118,6 +126,13 @@ documentLookupQueue.process(5, async (job: Job<DocumentLookupJobData>): Promise<
           fonte: 'CNPJA',
         };
       } else {
+        // DEBUG: Log detalhado da falha
+        console.log(`❌ CNPJA FALHOU para ${cliente.nome}:`);
+        console.log(`   - Erro: ${result.error}`);
+        console.log(`   - CNPJ tentado: ${detection.limpo}`);
+        console.log(`   - Cached? ${result.cached || false}`);
+        console.log(`   - endereco original planilha: "${cliente.endereco || '(VAZIO!)'}"`);
+
         await prisma.cliente.update({
           where: { id: clienteId },
           data: {
@@ -128,7 +143,12 @@ documentLookupQueue.process(5, async (job: Job<DocumentLookupJobData>): Promise<
         });
 
         // Mesmo com falha, encadear para normalização (pipeline continua)
+        // Normalization usará endereço da planilha já que enderecoReceita ficou vazio
         console.log(`⚠️  CNPJA falhou mas encadeando para normalização: ${clienteId}`);
+        console.log(`   - Normalization usará endereco da planilha: "${cliente.endereco || '(VAZIO!)'}"`);
+        if (!cliente.endereco) {
+          console.warn(`   ⚠️  ALERTA: Cliente sem endereço na planilha E CNPJA falhou - normalização vai falhar!`);
+        }
         await normalizationQueue.add(
           { clienteId, loteId },
           { delay: 500 }
