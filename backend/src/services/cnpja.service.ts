@@ -114,6 +114,15 @@ export class CnpjaService {
 
       const d = response.data;
 
+      // DEBUG: Log da resposta completa
+      console.log(`📦 CNPJA FULL RESPONSE para ${cnpjLimpo}:`);
+      console.log(`   - d.company existe? ${!!d.company}`);
+      console.log(`   - d.company?.name: "${d.company?.name || '(vazio)'}"`);
+      console.log(`   - d.alias: "${d.alias || '(vazio)'}"`);
+      console.log(`   - d.name (direto): "${d.name || '(vazio)'}"`);
+      console.log(`   - d.company keys:`, d.company ? Object.keys(d.company) : '(null)');
+      console.log(`   - FULL d keys:`, Object.keys(d));
+
       // DEBUG: Log da resposta completa de endereço
       console.log(`📍 CNPJA ADDRESS DEBUG para ${cnpjLimpo}:`);
       console.log(`   - d.address existe? ${!!d.address}`);

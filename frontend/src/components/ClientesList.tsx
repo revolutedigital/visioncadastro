@@ -129,10 +129,16 @@ export function ClientesList({ onViewDetails }: ClientesListProps) {
     return cliente.fotos?.find((f) => f.analise)?.analise || null;
   };
 
+  // Helper para obter nome de exibição com fallbacks
+  const getDisplayName = (cliente: Cliente): string => {
+    return cliente.nome || cliente.razaoSocial || cliente.nomeFantasia || cliente.cnpj || 'Sem nome';
+  };
+
   const filteredClientes = clientes.filter((cliente) => {
     const matchesFilter =
       filter === 'all' || cliente.potencialCategoria === filter;
-    const matchesSearch = cliente.nome
+    const displayName = getDisplayName(cliente);
+    const matchesSearch = displayName
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
@@ -251,7 +257,7 @@ export function ClientesList({ onViewDetails }: ClientesListProps) {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-start justify-between mb-2">
                 <h3 className="text-lg font-bold text-gray-900 flex-1">
-                  {cliente.nome}
+                  {getDisplayName(cliente)}
                 </h3>
                 {cliente.potencialCategoria && (
                   <div
