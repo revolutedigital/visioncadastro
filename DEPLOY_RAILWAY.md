@@ -74,11 +74,12 @@ ANTHROPIC_API_KEY=sua_chave_anthropic
 # CNPJA API (cnpja.com)
 CNPJA_API_KEY=sua_chave_cnpja
 
-# SERPRO CPF API
-SERPRO_CPF_CONSUMER_KEY=sua_consumer_key_serpro
-SERPRO_CPF_CONSUMER_SECRET=sua_consumer_secret_serpro
-SERPRO_CPF_TOKEN_URL=https://gateway.apiserpro.serpro.gov.br/token
-SERPRO_CPF_API_URL=https://gateway.apiserpro.serpro.gov.br/consulta-cpf-df/v1/cpf
+# SERPRO CPF API (OPCIONAL - usa Brasil API gratuito como fallback)
+# Se quiser usar SERPRO oficial, descomente e configure:
+# SERPRO_CPF_CONSUMER_KEY=sua_consumer_key_serpro
+# SERPRO_CPF_CONSUMER_SECRET=sua_consumer_secret_serpro
+# SERPRO_CPF_TOKEN_URL=https://gateway.apiserpro.serpro.gov.br/token
+# SERPRO_CPF_API_URL=https://gateway.apiserpro.serpro.gov.br/consulta-cpf-df/v1/cpf
 
 # JWT Secret (gere com: openssl rand -base64 32)
 JWT_SECRET=sua_chave_jwt_super_secreta_minimo_32_caracteres
