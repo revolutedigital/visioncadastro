@@ -107,7 +107,8 @@ export function UploadPage() {
       const data = await response.json();
       dismissToast(loadingToast);
       if (data.success) {
-        showSuccess(`${data.total || 0} clientes adicionados à fila.`);
+        const total = data.data?.clientesCriados || data.total || 0;
+        showSuccess(`${total} clientes criados com sucesso.`);
         setTimeout(() => navigate('/pipeline'), 1000);
       } else {
         setError(data.error || 'Erro ao fazer upload');
