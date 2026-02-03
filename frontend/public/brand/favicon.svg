@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1"/>
+      <stop offset="100%" style="stop-color:#A855F7"/>
+    </linearGradient>
+    <linearGradient id="ag" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10B981"/>
+      <stop offset="100%" style="stop-color:#34D399"/>
+    </linearGradient>
+  </defs>
+  <!-- Fundo -->
+  <rect width="32" height="32" rx="8" fill="url(#fg)"/>
+  <!-- A estilizado (Arca) -->
+  <path d="M16 6 L8 26 L11 26 L13 21 L19 21 L21 26 L24 26 L16 6Z" fill="white"/>
+  <rect x="12" y="16" width="8" height="2.5" rx="1" fill="white" opacity="0.85"/>
+  <!-- Olho AI -->
+  <circle cx="16" cy="12" r="1.5" fill="url(#ag)"/>
+</svg>

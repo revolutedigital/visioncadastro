@@ -54,10 +54,9 @@ export default function LoginPage() {
       <div className="w-full max-w-sm animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-5">
-            <ArcaAILogo variant="icon" size="lg" />
+          <div className="flex justify-center mb-4">
+            <ArcaAILogo variant="full" size="xl" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1">Arca AI</h1>
           <p className="text-indigo-300 text-sm">Cadastro Inteligente de Clientes</p>
         </div>
 
@@ -138,7 +137,7 @@ export default function LoginPage() {
           <div className="mt-5 pt-5 border-t border-[#E5E5EA]">
             <p className="text-center text-[13px] text-zinc-500">
               Problemas para acessar?{' '}
-              <a href="mailto:suporte@revolutedigital.com.br" className="text-indigo-600 hover:underline">
+              <a href="mailto:suporte@ffdigital.com.br" className="text-indigo-600 hover:underline">
                 Contate o suporte
               </a>
             </p>
@@ -146,7 +145,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-indigo-400/40 text-[13px] mt-6">
-          Revolute Digital 2025
+          FF Digital 2026
         </p>
       </div>
     </div>
