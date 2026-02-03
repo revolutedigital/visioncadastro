@@ -32,6 +32,51 @@ interface ClienteData {
   dataQualityScore?: number;
   confiabilidadeDados?: string;
   scoringBreakdown?: string;
+  // Campos adicionais para breakdown de Qualidade de Dados
+  dataQualityBreakdown?: string;
+  camposCriticos?: string;
+  fontesValidadas?: string;
+  camposPreenchidos?: number;
+  // Status das etapas do pipeline
+  placesStatus?: string;
+  geocodingStatus?: string;
+  receitaStatus?: string;
+  // Campos adicionais para Tipologia
+  ambienteEstabelecimento?: string;
+  publicoAlvo?: string;
+  totalFotosDisponiveis?: number;
+  // CNPJA / SERPRO - Dados cadastrais
+  tipoDocumento?: string;
+  cnpj?: string;
+  cpf?: string;
+  razaoSocial?: string;
+  nomeFantasia?: string;
+  enderecoReceita?: string;
+  situacaoReceita?: string;
+  dataAberturaReceita?: string;
+  naturezaJuridica?: string;
+  atividadePrincipal?: string;
+  simplesNacional?: boolean;
+  simplesNacionalData?: string;
+  meiOptante?: boolean;
+  cccStatus?: string;
+  cccDetalhes?: string;
+  quadroSocietario?: string;
+  quadroSocietarioQtd?: number;
+  capitalSocial?: number;
+  porteEmpresa?: string;
+  // Campos normalizados
+  enderecoNormalizado?: string;
+  cidadeNormalizada?: string;
+  estadoNormalizado?: string;
+  normalizacaoStatus?: string;
+  normalizacaoConfianca?: number;
+  // Geocodificação
+  latitude?: number;
+  longitude?: number;
+  // SERPRO CPF
+  cpfNome?: string;
+  cpfSituacao?: string;
 }
 
 interface Foto {
