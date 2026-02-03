@@ -88,42 +88,45 @@ if (REDIS_DISABLED) {
   console.log('📦 Inicializando filas com Redis REAL');
 
   // Configuração do Redis - suporta REDIS_URL do Railway ou config individual
-  // IMPORTANT: Não usar lazyConnect para garantir que os workers conectem imediatamente
-  const redisConfig = process.env.REDIS_URL
-    ? {
-        // Railway Redis URL
-        url: process.env.REDIS_URL,
-        maxRetriesPerRequest: null,
-        enableReadyCheck: false,
-        connectTimeout: 10000,
-        commandTimeout: 10000,
-        tls: process.env.REDIS_URL.startsWith('rediss://') ? {} : undefined,
-      }
-    : {
-        // Config local
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD || undefined,
-        maxRetriesPerRequest: null,
-        enableReadyCheck: false,
-      };
-
-  console.log('📦 Configuração Redis:', process.env.REDIS_URL ? 'Usando REDIS_URL' : `Usando ${redisConfig.host}:${redisConfig.port}`);
+  console.log('📦 Configuração Redis:', process.env.REDIS_URL ? 'Usando REDIS_URL' : `Usando ${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`);
 
   // Criar client Redis para o Bull
   // IMPORTANT: Não usar lazyConnect - workers precisam de conexão ativa
   const createRedisClient = (type: 'client' | 'subscriber' | 'bclient') => {
+    // Configuração robusta para Railway Redis
+    const robustConfig = {
+      maxRetriesPerRequest: null, // Bull requer null para blocking commands
+      enableReadyCheck: false,
+      connectTimeout: 30000, // 30s para conectar
+      commandTimeout: 60000, // 60s para comandos (era 10s - muito curto)
+      keepAlive: 30000, // Enviar keepalive a cada 30s
+      enableOfflineQueue: true, // Enfileirar comandos quando desconectado
+      retryStrategy: (times: number) => {
+        // Reconectar com backoff exponencial até 30s
+        const delay = Math.min(times * 1000, 30000);
+        console.log(`🔄 Redis ${type} reconectando em ${delay}ms (tentativa ${times})`);
+        return delay;
+      },
+      reconnectOnError: (err: Error) => {
+        // Reconectar em erros de conexão
+        const targetErrors = ['READONLY', 'ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED'];
+        if (targetErrors.some(e => err.message.includes(e))) {
+          console.log(`🔄 Redis ${type} reconectando após erro: ${err.message}`);
+          return true;
+        }
+        return false;
+      },
+    };
+
     // IMPORTANTE: ioredis aceita URL diretamente como string, NÃO como {url: ...}
     if (process.env.REDIS_URL) {
       console.log(`📦 Criando Redis client (${type}) com REDIS_URL`);
-      const client = new Redis(process.env.REDIS_URL, {
-        maxRetriesPerRequest: null,
-        enableReadyCheck: false,
-        connectTimeout: 10000,
-        commandTimeout: 10000,
-      });
+      const client = new Redis(process.env.REDIS_URL, robustConfig);
       client.on('connect', () => console.log(`✅ Redis ${type} conectado`));
+      client.on('ready', () => console.log(`✅ Redis ${type} pronto`));
       client.on('error', (err) => console.error(`❌ Redis ${type} erro:`, err.message));
+      client.on('close', () => console.warn(`⚠️ Redis ${type} conexão fechada`));
+      client.on('reconnecting', () => console.log(`🔄 Redis ${type} reconectando...`));
       return client;
     }
     console.log(`📦 Criando Redis client (${type}) com host/port`);
@@ -131,11 +134,13 @@ if (REDIS_DISABLED) {
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD || undefined,
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
+      ...robustConfig,
     });
     client.on('connect', () => console.log(`✅ Redis ${type} conectado`));
+    client.on('ready', () => console.log(`✅ Redis ${type} pronto`));
     client.on('error', (err) => console.error(`❌ Redis ${type} erro:`, err.message));
+    client.on('close', () => console.warn(`⚠️ Redis ${type} conexão fechada`));
+    client.on('reconnecting', () => console.log(`🔄 Redis ${type} reconectando...`));
     return client;
   };
 
