@@ -26,7 +26,11 @@
     "test:sprint1": "npx ts-node src/tests/test-sprint1.ts",
     "test:sprint2": "npx ts-node src/tests/test-sprint2.ts",
     "test:sprint3": "npx ts-node src/tests/test-sprint3.ts",
-    "test:all-sprints": "npm run test:sprint1 && npm run test:sprint2 && npm run test:sprint3"
+    "test:all-sprints": "npm run test:sprint1 && npm run test:sprint2 && npm run test:sprint3",
+    "backfill:empty-names": "npx ts-node src/scripts/backfill-empty-names.ts",
+    "backfill:empty-names:dry": "npx ts-node src/scripts/backfill-empty-names.ts --dry-run",
+    "backfill:cnpja-serpro": "npx ts-node src/scripts/backfill-cnpja-serpro.ts",
+    "backfill:cnpja-serpro:dry": "npx ts-node src/scripts/backfill-cnpja-serpro.ts --dry-run"
   },
   "keywords": [],
   "author": "",
