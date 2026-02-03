@@ -18,7 +18,8 @@ interface GeocodingJobData {
 /**
  * Worker para processar geocodificação de clientes
  */
-geocodingQueue.process(async (job: Job<GeocodingJobData>) => {
+// Concurrency 3 = geocodifica 3 endereços em paralelo (Google Maps limit)
+geocodingQueue.process(3, async (job: Job<GeocodingJobData>) => {
   const { clienteId, loteId } = job.data;
 
   console.log(`🔄 Processando geocodificação do cliente: ${clienteId}`);

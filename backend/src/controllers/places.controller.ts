@@ -42,7 +42,7 @@ export class PlacesController {
             {
               jobId: `places-${cliente.id}`,
               removeOnComplete: true,
-              delay: Math.random() * 2000, // Delay aleatório 0-2s para evitar rate limit
+              delay: Math.random() * 300, // Delay aleatório 0-300ms
             }
           )
         )
@@ -329,7 +329,7 @@ export class PlacesController {
           placesQueue.add(
             { clienteId: cliente.id },
             {
-              delay: index * 2000, // Delay incremental para evitar rate limit
+              delay: index * 300, // Delay incremental 300ms
             }
           )
         )

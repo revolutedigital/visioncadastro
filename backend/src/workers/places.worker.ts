@@ -19,7 +19,8 @@ interface PlacesJobData {
 /**
  * Worker para processar busca de informações no Google Places
  */
-placesQueue.process(async (job: Job<PlacesJobData>) => {
+// Concurrency 3 = busca 3 lugares em paralelo (Google Places limit)
+placesQueue.process(3, async (job: Job<PlacesJobData>) => {
   const { clienteId, loteId } = job.data;
 
   console.log(`🔄 Processando Google Places do cliente: ${clienteId}`);

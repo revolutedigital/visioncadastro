@@ -68,7 +68,8 @@ interface CrossValidationResult {
  * - 70%: Apenas 1 fonte ou alta divergência
  * - 50%: Fallback para Regex (detectou alucinação)
  */
-normalizationQueue.process(async (job: Job<NormalizationJobData>): Promise<NormalizationJobResult> => {
+// Concurrency 5 = normaliza 5 endereços em paralelo
+normalizationQueue.process(5, async (job: Job<NormalizationJobData>): Promise<NormalizationJobResult> => {
   const { clienteId, loteId } = job.data;
 
   try {

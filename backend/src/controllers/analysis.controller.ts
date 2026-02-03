@@ -52,7 +52,7 @@ export class AnalysisController {
           analysisQueue.add(
             { clienteId: cliente.id, mode },
             {
-              delay: index * 5000, // Delay de 5s entre cada análise para evitar rate limit
+              delay: index * 1000, // Delay de 1s entre cada análise
             }
           )
         )
@@ -608,7 +608,7 @@ export class AnalysisController {
           analysisQueue.add(
             { clienteId: cliente.id, mode },
             {
-              delay: index * 5000,
+              delay: index * 1000, // 1s entre cada
             }
           )
         )
