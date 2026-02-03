@@ -395,7 +395,6 @@ placesQueue.process(3, async (job: Job<PlacesJobData>) => {
       }
 
       // Encadear para análise de IA (se tiver fotos)
-      const totalFotos = place.fotos?.length || 0;
       if (totalFotos > 0) {
         await analysisQueue.add(
           { clienteId, mode: 'batch', loteId },
