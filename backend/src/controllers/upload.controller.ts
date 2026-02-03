@@ -112,17 +112,17 @@ export class UploadController {
         const linha = index + 2;
 
         try {
-          // Validação básica
-          if (!row.nome || !row.endereco) {
-            errors.push(`Linha ${linha}: Nome ou endereço faltando`);
+          // Validação básica - apenas CNPJ é obrigatório (nome/endereco vem da Receita)
+          if (!row.cnpj) {
+            errors.push(`Linha ${linha}: CNPJ/CPF faltando`);
             return;
           }
 
           // Normalizar dados
           const cliente = {
-            nome: row.nome.trim().replace(/\s+/g, ' '),
+            nome: row.nome ? row.nome.trim().replace(/\s+/g, ' ') : '',
             telefone: row.telefone ? String(row.telefone).replace(/\D/g, '') : null,
-            endereco: row.endereco.trim().replace(/\s+/g, ' '),
+            endereco: row.endereco ? row.endereco.trim().replace(/\s+/g, ' ') : '',
             cidade: row.cidade ? row.cidade.trim() : null,
             estado: row.estado ? row.estado.trim().toUpperCase() : null,
             cep: row.cep ? String(row.cep).replace(/\D/g, '') : null,

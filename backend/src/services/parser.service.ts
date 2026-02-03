@@ -88,15 +88,15 @@ export class ParserService {
           cnpj: this.extractField(row, ['cnpj', 'CNPJ', 'Cnpj', 'CPF', 'cpf']),
         };
 
-        // Validação básica
-        if (!cliente.nome || !cliente.endereco) {
-          errors.push(`Linha ${linha}: Nome ou endereço faltando`);
+        // Validação básica - apenas CNPJ é obrigatório (nome/endereco vem da Receita)
+        if (!cliente.cnpj) {
+          errors.push(`Linha ${linha}: CNPJ/CPF faltando`);
           return;
         }
 
         // Normalizar dados
-        cliente.nome = this.normalizarTexto(cliente.nome);
-        cliente.endereco = this.normalizarTexto(cliente.endereco);
+        if (cliente.nome) cliente.nome = this.normalizarTexto(cliente.nome);
+        if (cliente.endereco) cliente.endereco = this.normalizarTexto(cliente.endereco);
         if (cliente.telefone) cliente.telefone = this.normalizarTelefone(cliente.telefone);
         if (cliente.cep) cliente.cep = this.normalizarCEP(cliente.cep);
         if (cliente.cnpj) cliente.cnpj = this.normalizarCNPJ(cliente.cnpj);
