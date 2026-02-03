@@ -13,6 +13,12 @@ import {
   Info,
   XCircle,
   Database,
+  Building2,
+  Users,
+  Calendar,
+  FileText,
+  Briefcase,
+  DollarSign,
 } from 'lucide-react';
 import { ConfidenceIndicator } from '../../../components/ConfidenceIndicator';
 
@@ -48,6 +54,26 @@ interface ClienteData {
   ambienteEstabelecimento?: string;
   publicoAlvo?: string;
   totalFotosDisponiveis?: number;
+  // CNPJA / Receita Federal
+  tipoDocumento?: string;
+  cnpj?: string;
+  cpf?: string;
+  razaoSocial?: string;
+  nomeFantasia?: string;
+  enderecoReceita?: string;
+  situacaoReceita?: string;
+  dataAberturaReceita?: string;
+  naturezaJuridica?: string;
+  atividadePrincipal?: string;
+  simplesNacional?: boolean;
+  simplesNacionalData?: string;
+  meiOptante?: boolean;
+  cccStatus?: string;
+  cccDetalhes?: string;
+  quadroSocietario?: string;
+  quadroSocietarioQtd?: number;
+  capitalSocial?: number;
+  porteEmpresa?: string;
 }
 
 interface VisaoGeralProps {
@@ -116,6 +142,184 @@ export function VisaoGeral({ cliente }: VisaoGeralProps) {
           )}
         </div>
       </div>
+
+      {/* Dados Cadastrais (CNPJA) */}
+      {(cliente.cnpj || cliente.cpf || cliente.razaoSocial) && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <Building2 className="w-5 h-5 mr-2 text-indigo-600" />
+            Dados Cadastrais
+            {cliente.receitaStatus === 'SUCESSO' && (
+              <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                CNPJA Validado
+              </span>
+            )}
+          </h3>
+
+          <div className="space-y-3">
+            {/* CNPJ/CPF */}
+            {(cliente.cnpj || cliente.cpf) && (
+              <div className="flex items-start">
+                <FileText className="w-5 h-5 text-gray-500 mr-3 mt-0.5" />
+                <div>
+                  <p className="text-sm text-gray-600">{cliente.tipoDocumento || 'Documento'}</p>
+                  <p className="text-sm font-medium text-gray-900 font-mono">
+                    {cliente.cnpj || cliente.cpf}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Razão Social */}
+            {cliente.razaoSocial && (
+              <div className="flex items-start">
+                <Briefcase className="w-5 h-5 text-gray-500 mr-3 mt-0.5" />
+                <div>
+                  <p className="text-sm text-gray-600">Razão Social</p>
+                  <p className="text-sm font-medium text-gray-900">{cliente.razaoSocial}</p>
+                  {cliente.nomeFantasia && cliente.nomeFantasia !== cliente.razaoSocial && (
+                    <p className="text-xs text-gray-500">Nome Fantasia: {cliente.nomeFantasia}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Situação */}
+            {cliente.situacaoReceita && (
+              <div className="flex items-start">
+                {cliente.situacaoReceita.toLowerCase().includes('ativa') ? (
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-500 mr-3 mt-0.5" />
+                )}
+                <div>
+                  <p className="text-sm text-gray-600">Situação Cadastral</p>
+                  <p className={`text-sm font-medium ${
+                    cliente.situacaoReceita.toLowerCase().includes('ativa')
+                      ? 'text-green-700'
+                      : 'text-red-700'
+                  }`}>
+                    {cliente.situacaoReceita}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Data de Abertura */}
+            {cliente.dataAberturaReceita && (
+              <div className="flex items-start">
+                <Calendar className="w-5 h-5 text-gray-500 mr-3 mt-0.5" />
+                <div>
+                  <p className="text-sm text-gray-600">Data de Abertura</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {new Date(cliente.dataAberturaReceita).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Atividade Principal */}
+            {cliente.atividadePrincipal && (
+              <div className="flex items-start">
+                <Tag className="w-5 h-5 text-gray-500 mr-3 mt-0.5" />
+                <div>
+                  <p className="text-sm text-gray-600">Atividade Principal</p>
+                  <p className="text-sm font-medium text-gray-900">{cliente.atividadePrincipal}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Badges: Simples, MEI, CCC */}
+            <div className="flex flex-wrap gap-2 pt-2">
+              {cliente.simplesNacional !== undefined && (
+                <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${
+                  cliente.simplesNacional
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  <Building2 className="w-3 h-3 mr-1" />
+                  {cliente.simplesNacional ? 'Simples Nacional' : 'Não Simples'}
+                </span>
+              )}
+
+              {cliente.meiOptante && (
+                <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-700">
+                  MEI
+                </span>
+              )}
+
+              {cliente.cccStatus && (
+                <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${
+                  cliente.cccStatus === 'ATIVA'
+                    ? 'bg-green-100 text-green-700'
+                    : cliente.cccStatus === 'PARCIAL'
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : 'bg-red-100 text-red-700'
+                }`}>
+                  CCC: {cliente.cccStatus}
+                </span>
+              )}
+            </div>
+
+            {/* Capital Social e Porte */}
+            {(cliente.capitalSocial || cliente.porteEmpresa) && (
+              <div className="flex items-start pt-2 border-t border-gray-200">
+                <DollarSign className="w-5 h-5 text-gray-500 mr-3 mt-0.5" />
+                <div>
+                  {cliente.capitalSocial && (
+                    <>
+                      <p className="text-sm text-gray-600">Capital Social</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cliente.capitalSocial)}
+                      </p>
+                    </>
+                  )}
+                  {cliente.porteEmpresa && (
+                    <p className="text-xs text-gray-500 mt-1">Porte: {cliente.porteEmpresa}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Quadro Societário */}
+            {cliente.quadroSocietario && (() => {
+              try {
+                const socios = JSON.parse(cliente.quadroSocietario);
+                if (socios.length > 0) {
+                  return (
+                    <div className="pt-3 border-t border-gray-200">
+                      <div className="flex items-center mb-2">
+                        <Users className="w-5 h-5 text-indigo-500 mr-2" />
+                        <p className="text-sm font-medium text-gray-900">
+                          Quadro Societário ({socios.length} sócio{socios.length > 1 ? 's' : ''})
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
+                        {socios.map((socio: any, idx: number) => (
+                          <div key={idx} className="flex justify-between items-start text-sm border-b border-gray-200 pb-2 last:border-0 last:pb-0">
+                            <div>
+                              <p className="font-medium text-gray-800">{socio.nome}</p>
+                              <p className="text-xs text-gray-500">{socio.qualificacao}</p>
+                            </div>
+                            {socio.cpf && (
+                              <p className="text-xs text-gray-400 font-mono">
+                                {socio.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '***.$2.$3-**')}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              } catch {
+                return null;
+              }
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Potencial & Score */}
       <div className="bg-white rounded-lg shadow-md p-6">

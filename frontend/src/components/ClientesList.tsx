@@ -14,6 +14,11 @@ import {
   Info,
   ChevronDown,
   ChevronUp,
+  Building2,
+  Users,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
 } from 'lucide-react';
 
 interface Analise {
@@ -43,6 +48,18 @@ interface Cliente {
   latitude?: number;
   longitude?: number;
   status?: string;
+  // CNPJA / Receita Federal
+  cnpj?: string;
+  razaoSocial?: string;
+  nomeFantasia?: string;
+  situacaoReceita?: string;
+  simplesNacional?: boolean;
+  meiOptante?: boolean;
+  receitaStatus?: string;
+  quadroSocietarioQtd?: number;
+  cccStatus?: string;
+  capitalSocial?: number;
+  porteEmpresa?: string;
   fotos?: Array<{
     id: string;
     fileName: string;
@@ -264,6 +281,72 @@ export function ClientesList({ onViewDetails }: ClientesListProps) {
                   {cliente.tipoEstabelecimento}
                 </div>
               )}
+
+              {/* CNPJA Status Badges */}
+              <div className="flex flex-wrap gap-1 mt-2">
+                {/* Situação Receita */}
+                {cliente.situacaoReceita && (
+                  <div
+                    className={`inline-flex items-center px-2 py-0.5 text-xs rounded-full ${
+                      cliente.situacaoReceita.toLowerCase().includes('ativa')
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}
+                  >
+                    {cliente.situacaoReceita.toLowerCase().includes('ativa') ? (
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                    ) : (
+                      <XCircle className="w-3 h-3 mr-1" />
+                    )}
+                    {cliente.situacaoReceita}
+                  </div>
+                )}
+
+                {/* Simples Nacional */}
+                {cliente.simplesNacional !== undefined && (
+                  <div
+                    className={`inline-flex items-center px-2 py-0.5 text-xs rounded-full ${
+                      cliente.simplesNacional
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    <Building2 className="w-3 h-3 mr-1" />
+                    {cliente.simplesNacional ? 'Simples' : 'Não Simples'}
+                  </div>
+                )}
+
+                {/* MEI */}
+                {cliente.meiOptante && (
+                  <div className="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-orange-100 text-orange-700">
+                    MEI
+                  </div>
+                )}
+
+                {/* Quadro Societário */}
+                {cliente.quadroSocietarioQtd !== undefined && cliente.quadroSocietarioQtd > 0 && (
+                  <div className="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-700">
+                    <Users className="w-3 h-3 mr-1" />
+                    {cliente.quadroSocietarioQtd} sócio{cliente.quadroSocietarioQtd > 1 ? 's' : ''}
+                  </div>
+                )}
+
+                {/* Receita Status */}
+                {cliente.receitaStatus && cliente.receitaStatus !== 'SUCESSO' && (
+                  <div
+                    className={`inline-flex items-center px-2 py-0.5 text-xs rounded-full ${
+                      cliente.receitaStatus === 'FALHA'
+                        ? 'bg-red-100 text-red-700'
+                        : cliente.receitaStatus === 'PROCESSANDO'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    CNPJA: {cliente.receitaStatus}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Stats */}

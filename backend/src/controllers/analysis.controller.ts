@@ -405,6 +405,12 @@ export class AnalysisController {
           simplesNacional: true,
           meiOptante: true,
           receitaStatus: true,
+          // Quadro societário
+          quadroSocietario: true,
+          quadroSocietarioQtd: true,
+          // CCC (Cadastro de Contribuintes)
+          cccStatus: true,
+          cccDetalhes: true,
           // Campos normalizados
           enderecoNormalizado: true,
           cidadeNormalizada: true,
