@@ -10,7 +10,7 @@
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "prisma generate && tsc",
     "start": "node dist/index.js",
-    "start:migrate": "prisma migrate deploy && node dist/index.js",
+    "start:migrate": "prisma migrate resolve --rolled-back 20260203_add_cnpja_serpro_duplicatas 2>/dev/null; prisma migrate resolve --rolled-back 20260203170000_add_arca_analyst_fields 2>/dev/null; prisma migrate deploy && node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
