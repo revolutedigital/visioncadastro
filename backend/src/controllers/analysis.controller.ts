@@ -233,6 +233,7 @@ export class AnalysisController {
         // Breakdown detalhado para badges
         receitaSucesso,
         receitaFalha,
+        documentosInvalidos,
         normalizacaoSucesso,
         normalizacaoIncompleto,
         geocodingSemCoordenadas,
@@ -268,6 +269,7 @@ export class AnalysisController {
         // Breakdown detalhado para badges no frontend
         prisma.cliente.count({ where: { receitaStatus: 'SUCESSO' } }),
         prisma.cliente.count({ where: { receitaStatus: 'FALHA' } }),
+        prisma.cliente.count({ where: { tipoDocumento: 'INVALIDO' } }), // Documentos que não são CNPJ (14) nem CPF (11)
         prisma.cliente.count({ where: { normalizacaoStatus: 'SUCESSO' } }),
         prisma.cliente.count({ where: { normalizacaoStatus: 'INCOMPLETO' } }),
         prisma.cliente.count({ where: { latitude: null, normalizacaoStatus: { notIn: ['PENDENTE', 'PROCESSANDO'] } } }), // Processados mas sem coordenadas
@@ -331,6 +333,7 @@ export class AnalysisController {
           // Breakdown para badges
           receitaSucesso,
           receitaFalha,
+          documentosInvalidos,
           normalizacaoSucesso,
           normalizacaoIncompleto,
           geocodingSemCoordenadas,

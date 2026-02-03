@@ -208,11 +208,17 @@ export class CnpjaService {
       const status = error.response?.status;
       const message = error.response?.data?.message || error.message;
 
+      if (status === 404) {
+        return { success: false, error: 'CNPJ não encontrado na Receita Federal' };
+      }
       if (status === 429) {
         return { success: false, error: 'Rate limit CNPJA atingido. Tente novamente em instantes.' };
       }
       if (status === 401) {
         return { success: false, error: 'CNPJA_API_KEY inválida ou expirada.' };
+      }
+      if (status === 400) {
+        return { success: false, error: 'CNPJ com formato inválido ou dígito verificador incorreto' };
       }
 
       console.error(`❌ Erro CNPJA para CNPJ ${cnpj}:`, message);

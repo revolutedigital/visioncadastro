@@ -63,6 +63,7 @@ interface QueueStatus {
     // Breakdown para badges
     receitaSucesso?: number;
     receitaFalha?: number;
+    documentosInvalidos?: number;
     normalizacaoSucesso?: number;
     normalizacaoIncompleto?: number;
     geocodingSemCoordenadas?: number;
@@ -551,7 +552,13 @@ export function PipelinePage() {
                   {(queueStatus.clientes.receitaFalha || 0) > 0 && (
                     <span className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded-md border border-red-200">
                       <AlertCircle className="w-3 h-3" />
-                      {queueStatus.clientes.receitaFalha} CNPJs inválidos
+                      {queueStatus.clientes.receitaFalha} CNPJs não encontrados
+                    </span>
+                  )}
+                  {(queueStatus.clientes.documentosInvalidos || 0) > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-yellow-50 text-yellow-700 rounded-md border border-yellow-200">
+                      <AlertCircle className="w-3 h-3" />
+                      {queueStatus.clientes.documentosInvalidos} documentos inválidos
                     </span>
                   )}
                   {queueStatus.clientes.divergenciaEndereco > 0 && (
