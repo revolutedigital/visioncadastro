@@ -1,13 +1,14 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, LayoutGrid, Image, Brain, Clock, Loader } from 'lucide-react';
+import { ArrowLeft, LayoutGrid, Image, Brain, Clock, Loader, Shield } from 'lucide-react';
 import { VisaoGeral } from './tabs/VisaoGeral';
 import { FotosTab } from './tabs/FotosTab';
 import { AnaliseIATab } from './tabs/AnaliseIATab';
+import { ConfiabilidadeTab } from './tabs/ConfiabilidadeTab';
 import { API_BASE_URL } from '../../config/api';
 import { authFetch } from '../../utils/api';
 
-type TabId = 'visao-geral' | 'fotos' | 'analise-ia' | 'historico';
+type TabId = 'visao-geral' | 'fotos' | 'analise-ia' | 'confiabilidade' | 'historico';
 
 interface ClienteData {
   nome: string;
@@ -98,6 +99,11 @@ export function ClienteDetalhesPage() {
       label: 'Análise IA',
       icon: Brain,
       badge: fotosAnalisadas > 0 ? `${fotosAnalisadas}/${totalFotos}` : undefined,
+    },
+    {
+      id: 'confiabilidade' as TabId,
+      label: 'Confiabilidade',
+      icon: Shield,
     },
     {
       id: 'historico' as TabId,
@@ -211,6 +217,9 @@ export function ClienteDetalhesPage() {
               fotosAnalisadas={fotosAnalisadas}
               totalFotos={totalFotos}
             />
+          )}
+          {activeTab === 'confiabilidade' && id && (
+            <ConfiabilidadeTab clienteId={id} />
           )}
           {activeTab === 'historico' && (
             <div className="text-center py-12">
