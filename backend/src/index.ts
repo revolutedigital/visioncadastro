@@ -24,7 +24,7 @@ import './workers/normalization.worker';
 import './workers/places.worker';
 import './workers/analysis.worker';
 import './workers/enrichment.worker';
-import './workers/tipologia.worker';
+import './workers/arca-analyst.worker'; // Substitui tipologia.worker
 import './workers/document-lookup.worker';
 
 // Import das filas para despausar ao iniciar

@@ -223,6 +223,16 @@ model Cliente {
   produtosSugeridos        String? // JSON: produtos Pepsi ideais
   estrategiaComercial      String? // Estratégia sugerida para este cliente
 
+  // Arca Analyst (substitui tipologia simples)
+  arcaStatus               String?   // APROVADO, APROVADO_COM_RESSALVAS, REPROVADO, REQUER_REVISAO
+  arcaConfianca            Int?      // 0-100 score de confianca geral
+  arcaResumo               String?   @db.Text // Resumo executivo do veredito
+  arcaAlertasCriticos      String?   @db.Text // JSON: alertas criticos
+  arcaAlertasSecundarios   String?   @db.Text // JSON: alertas secundarios
+  arcaRecomendacoes        String?   @db.Text // JSON: recomendacoes
+  arcaDivergencias         String?   @db.Text // JSON: divergencias encontradas
+  arcaProcessadoEm         DateTime? // Quando foi analisado
+
   // IA Analysis Cache Sprint 3
   analysisPromptVersion  String? // Versão do prompt usado (ex: "v1.2.0")
 

@@ -353,9 +353,9 @@ export function PipelinePage() {
       },
       {
         id: '5',
-        name: 'Classificação de Tipologia',
+        name: 'Arca Analyst',
         icon: Tags,
-        description: 'Classificar estabelecimento em tipologias PepsiCo usando IA com todas as informações coletadas',
+        description: 'Agente IA valida cadastro cruzando TODAS as fontes (CNPJA, Google, IA) e da veredito',
         status: tipologiaStats && tipologiaStats.total === total && total > 0
           ? 'completed'
           : tipologiaStats && tipologiaStats.total > 0
