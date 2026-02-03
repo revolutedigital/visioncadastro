@@ -230,6 +230,12 @@ export class AnalysisController {
         clientesDuplicata,
         clientesCpfNaoRelacionado,
         clientesCpfNoQSA,
+        // Breakdown detalhado para badges
+        receitaSucesso,
+        receitaFalha,
+        normalizacaoSucesso,
+        normalizacaoIncompleto,
+        geocodingSemCoordenadas,
       ] = await Promise.all([
         prisma.cliente.count(), // Total de TODOS os clientes
         prisma.cliente.count({
@@ -241,19 +247,6 @@ export class AnalysisController {
           where: {
             normalizacaoStatus: { notIn: ['PENDENTE', 'PROCESSANDO'] }, // Todos que não estão pendentes ou processando = processados
           },
-        }).then(async (count) => {
-          // DEBUG: Log para identificar a distribuição de status
-          const normDistribution = await prisma.cliente.groupBy({
-            by: ['normalizacaoStatus'],
-            _count: true,
-          });
-          const receitaDistribution = await prisma.cliente.groupBy({
-            by: ['receitaStatus'],
-            _count: true,
-          });
-          console.log('📊 DEBUG Normalização - Total:', count, 'Distribuição:', JSON.stringify(normDistribution));
-          console.log('📊 DEBUG Receita - Distribuição:', JSON.stringify(receitaDistribution));
-          return count;
         }),
         prisma.cliente.count({ where: { divergenciaEndereco: true } }),
         prisma.cliente.count({ where: { latitude: { not: null } } }), // Clientes com coordenadas
@@ -272,6 +265,12 @@ export class AnalysisController {
         prisma.cliente.count({ where: { alertaDuplicata: true } }),
         prisma.cliente.count({ where: { alertaCpfNaoRelacionado: true } }),
         prisma.cliente.count({ where: { cpfNoQuadroSocietario: true } }),
+        // Breakdown detalhado para badges no frontend
+        prisma.cliente.count({ where: { receitaStatus: 'SUCESSO' } }),
+        prisma.cliente.count({ where: { receitaStatus: 'FALHA' } }),
+        prisma.cliente.count({ where: { normalizacaoStatus: 'SUCESSO' } }),
+        prisma.cliente.count({ where: { normalizacaoStatus: 'INCOMPLETO' } }),
+        prisma.cliente.count({ where: { latitude: null, normalizacaoStatus: { notIn: ['PENDENTE', 'PROCESSANDO'] } } }), // Processados mas sem coordenadas
       ]);
 
       return res.json({
@@ -329,6 +328,12 @@ export class AnalysisController {
           duplicatas: clientesDuplicata,
           cpfNaoRelacionado: clientesCpfNaoRelacionado,
           cpfNoQSA: clientesCpfNoQSA,
+          // Breakdown para badges
+          receitaSucesso,
+          receitaFalha,
+          normalizacaoSucesso,
+          normalizacaoIncompleto,
+          geocodingSemCoordenadas,
         },
         fotos: {
           total: fotosAnalisadas + fotosNaoAnalisadas,

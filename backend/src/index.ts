@@ -58,6 +58,8 @@ const allowedOrigins = [
   'http://localhost:3000', // Dev local
   'http://localhost:5173', // Vite dev server
   process.env.FRONTEND_URL || '', // Railway frontend (configurável)
+  'https://arcaai.up.railway.app', // Arca AI Frontend
+  'https://arcaback.up.railway.app', // Arca AI Backend
   'https://scampepisico-frontend.up.railway.app', // Fallback Railway
   'https://visionaifront-production.up.railway.app', // Railway frontend produção
   'https://visionai-production.up.railway.app', // Backend Railway (para testes)

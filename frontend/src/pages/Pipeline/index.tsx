@@ -60,6 +60,12 @@ interface QueueStatus {
     comFotos: number;
     concluidos: number;
     percentualCompleto: number;
+    // Breakdown para badges
+    receitaSucesso?: number;
+    receitaFalha?: number;
+    normalizacaoSucesso?: number;
+    normalizacaoIncompleto?: number;
+    geocodingSemCoordenadas?: number;
   };
   fotos: {
     total: number;
@@ -531,30 +537,109 @@ export function PipelinePage() {
               </div>
 
               {/* Stats extras por step */}
-              {step.id === '0' && queueStatus && queueStatus.clientes.divergenciaEndereco > 0 && (
-                <div className="mt-2 ml-12 flex items-center gap-2 text-xs">
-                  <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
-                    <AlertCircle className="w-3 h-3" />
-                    {queueStatus.clientes.divergenciaEndereco} divergências de endereço
-                  </span>
+              {/* Step 0: Consulta Documento (CNPJ/CPF) */}
+              {step.id === '0' && queueStatus && (queueStatus.clientes.receitaSucesso !== undefined || queueStatus.clientes.receitaFalha !== undefined) && (
+                <div className="mt-2 ml-12 flex items-center gap-2 text-xs flex-wrap">
+                  {(queueStatus.clientes.receitaSucesso || 0) > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
+                      <CheckCircle className="w-3 h-3" />
+                      {queueStatus.clientes.receitaSucesso} CNPJs válidos
+                    </span>
+                  )}
+                  {(queueStatus.clientes.receitaFalha || 0) > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded-md border border-red-200">
+                      <AlertCircle className="w-3 h-3" />
+                      {queueStatus.clientes.receitaFalha} CNPJs inválidos
+                    </span>
+                  )}
+                  {queueStatus.clientes.divergenciaEndereco > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
+                      <AlertCircle className="w-3 h-3" />
+                      {queueStatus.clientes.divergenciaEndereco} divergências de endereço
+                    </span>
+                  )}
                 </div>
               )}
 
-              {step.id === '3' && placesDetails && placesDetails.falhas > 0 && (
-                <div className="mt-2 ml-12 flex items-center gap-2 text-xs">
+              {/* Step 1: Normalização */}
+              {step.id === '1' && queueStatus && (queueStatus.clientes.normalizacaoSucesso !== undefined || queueStatus.clientes.normalizacaoIncompleto !== undefined) && (
+                <div className="mt-2 ml-12 flex items-center gap-2 text-xs flex-wrap">
+                  {(queueStatus.clientes.normalizacaoSucesso || 0) > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
+                      <CheckCircle className="w-3 h-3" />
+                      {queueStatus.clientes.normalizacaoSucesso} normalizados
+                    </span>
+                  )}
+                  {(queueStatus.clientes.normalizacaoIncompleto || 0) > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
+                      <AlertCircle className="w-3 h-3" />
+                      {queueStatus.clientes.normalizacaoIncompleto} sem endereço
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Step 2: Geocoding */}
+              {step.id === '2' && queueStatus && (queueStatus.clientes.geocodificados > 0 || (queueStatus.clientes.geocodingSemCoordenadas || 0) > 0) && (
+                <div className="mt-2 ml-12 flex items-center gap-2 text-xs flex-wrap">
+                  {queueStatus.clientes.geocodificados > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
+                      <CheckCircle className="w-3 h-3" />
+                      {queueStatus.clientes.geocodificados} localizados
+                    </span>
+                  )}
+                  {(queueStatus.clientes.geocodingSemCoordenadas || 0) > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
+                      <AlertCircle className="w-3 h-3" />
+                      {queueStatus.clientes.geocodingSemCoordenadas} não localizados
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Step 3: Google Places */}
+              {step.id === '3' && placesDetails && (placesDetails.sucesso > 0 || placesDetails.falhas > 0) && (
+                <div className="mt-2 ml-12 flex items-center gap-2 text-xs flex-wrap">
+                  {placesDetails.sucesso > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
+                      <CheckCircle className="w-3 h-3" />
+                      {placesDetails.sucesso} com presença digital
+                    </span>
+                  )}
+                  {placesDetails.falhas > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
+                      <AlertCircle className="w-3 h-3" />
+                      {placesDetails.falhas} sem presença digital
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Step 4: Análise IA Fotos */}
+              {step.id === '4' && queueStatus && (queueStatus.fotos.analisadas > 0 || queueStatus.fotos.naoAnalisadas > 0) && (
+                <div className="mt-2 ml-12 flex items-center gap-2 text-xs flex-wrap">
+                  {queueStatus.fotos.analisadas > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
+                      <CheckCircle className="w-3 h-3" />
+                      {queueStatus.fotos.analisadas} fotos analisadas
+                    </span>
+                  )}
+                  {queueStatus.fotos.naoAnalisadas > 0 && (
+                    <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
+                      <Clock className="w-3 h-3" />
+                      {queueStatus.fotos.naoAnalisadas} aguardando análise
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Step 5: Arca Analyst */}
+              {step.id === '5' && tipologiaStats && tipologiaStats.total > 0 && (
+                <div className="mt-2 ml-12 flex items-center gap-2 text-xs flex-wrap">
                   <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
                     <CheckCircle className="w-3 h-3" />
-                    {placesDetails.sucesso} sucessos
+                    {tipologiaStats.total} analisados
                   </span>
-                  <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
-                    <AlertCircle className="w-3 h-3" />
-                    {placesDetails.falhas} sem presença digital
-                  </span>
-                </div>
-              )}
-
-              {step.id === '5' && tipologiaStats && tipologiaStats.total > 0 && (
-                <div className="mt-2 ml-12 flex items-center gap-2 text-xs">
                   <span className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
                     <Brain className="w-3 h-3" />
                     {tipologiaStats.mediaConfianca}% confiança média
