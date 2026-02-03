@@ -10,6 +10,23 @@ const prisma = new PrismaClient();
  */
 export class AdminController {
   /**
+   * GET /api/admin/debug-clientes
+   * Debug: ver dados dos clientes
+   */
+  async debugClientes(req: Request, res: Response) {
+    const clientes = await prisma.cliente.findMany({
+      take: 10,
+      select: { id: true, nome: true, cnpj: true, estado: true, receitaStatus: true, planilhaId: true },
+    });
+    const planilhas = await prisma.planilha.findMany({
+      select: { id: true, nomeArquivo: true },
+      orderBy: { uploadedAt: 'desc' },
+      take: 3,
+    });
+    res.json({ clientes, planilhas });
+  }
+
+  /**
    * GET /api/admin/stats
    * Retorna estatísticas gerais do sistema
    */

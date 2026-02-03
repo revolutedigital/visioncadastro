@@ -10,6 +10,9 @@ const router = Router();
  * Estas rotas são sensíveis e devem ser protegidas
  */
 
+// Debug clientes
+router.get('/debug-clientes', (req, res) => adminController.debugClientes(req, res));
+
 // Estatísticas
 router.get('/stats', (req, res) => adminController.getStats(req, res));
 
