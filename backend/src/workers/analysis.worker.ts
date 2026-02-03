@@ -65,8 +65,8 @@ analysisQueue.process(1, async (job: Job<AnalysisJobData>) => {
 
     // ==================== SPRINT 3: PRÉ-PROCESSAMENTO ====================
 
-    // 1. Calcular hash de fotos e buscar cache
-    console.log(`🔐 Calculando hashes das fotos...`);
+    // 1. Calcular hash de fotos e buscar cache (skip se arquivo não existe localmente)
+    console.log(`🔐 Verificando hashes das fotos...`);
     const photosDir = process.env.PHOTOS_DIR || path.join(__dirname, '../../uploads/fotos');
     const fotosComHash = await Promise.all(
       cliente.fotos.map(async (foto) => {
@@ -74,18 +74,23 @@ analysisQueue.process(1, async (job: Job<AnalysisJobData>) => {
           return foto; // Já tem hash
         }
 
-        const photoPath = path.join(photosDir, foto.fileName);
-        const hash = await calculateFileHash(photoPath);
-        await prisma.foto.update({
-          where: { id: foto.id },
-          data: { fileHash: hash },
-        });
-
-        return { ...foto, fileHash: hash };
+        try {
+          const photoPath = path.join(photosDir, foto.fileName);
+          const hash = await calculateFileHash(photoPath);
+          await prisma.foto.update({
+            where: { id: foto.id },
+            data: { fileHash: hash },
+          });
+          return { ...foto, fileHash: hash };
+        } catch (error: any) {
+          // Arquivo não existe localmente - será buscado do Google na análise
+          console.log(`ℹ️  Hash não calculado (arquivo local ausente): ${foto.fileName}`);
+          return foto;
+        }
       })
     );
 
-    // 2. Pré-classificar fotos (fachada vs interior)
+    // 2. Pré-classificar fotos (fachada vs interior) - skip se arquivo não existe
     console.log(`🏗️  Classificando fotos (fachada vs interior)...`);
     const fotosClassificadas = await Promise.all(
       fotosComHash.map(async (foto) => {
@@ -93,17 +98,22 @@ analysisQueue.process(1, async (job: Job<AnalysisJobData>) => {
           return foto; // Já classificada
         }
 
-        const photoPath = path.join(photosDir, foto.fileName);
-        const classification = await photoClassifier.classifyPhoto(photoPath);
-        await prisma.foto.update({
-          where: { id: foto.id },
-          data: {
-            photoCategory: classification.category,
-            photoCategoryConfidence: classification.confidence,
-          },
-        });
-
-        return { ...foto, ...classification };
+        try {
+          const photoPath = path.join(photosDir, foto.fileName);
+          const classification = await photoClassifier.classifyPhoto(photoPath, foto.photoReference);
+          await prisma.foto.update({
+            where: { id: foto.id },
+            data: {
+              photoCategory: classification.category,
+              photoCategoryConfidence: classification.confidence,
+            },
+          });
+          return { ...foto, ...classification };
+        } catch (error: any) {
+          // Se falhar, assumir como 'facade' para não bloquear análise
+          console.log(`ℹ️  Classificação padrão (fachada) para: ${foto.fileName}`);
+          return { ...foto, photoCategory: 'facade', photoCategoryConfidence: 50 };
+        }
       })
     );
 
@@ -146,7 +156,8 @@ analysisQueue.process(1, async (job: Job<AnalysisJobData>) => {
         const resultado = await claudeService.analyzeSinglePhoto(
           foto.fileName,
           cliente.nome,
-          cliente.endereco
+          cliente.endereco,
+          foto.photoReference // Buscar do Google se arquivo local não existir
         );
 
         if (resultado.success) {
@@ -172,12 +183,16 @@ analysisQueue.process(1, async (job: Job<AnalysisJobData>) => {
       analiseGeral = `Análise individual de ${cliente.fotos.length} fotos concluída`;
     } else {
       // Modo: Análise consolidada (batch)
-      const fotoFileNames = cliente.fotos.map((f) => f.fileName);
+      // Passar fileName + photoReference para buscar do Google se necessário
+      const fotosParaBatch = cliente.fotos.map((f) => ({
+        fileName: f.fileName,
+        photoReference: f.photoReference,
+      }));
 
-      console.log(`🤖 Análise consolidada de ${fotoFileNames.length} fotos...`);
+      console.log(`🤖 Análise consolidada de ${fotosParaBatch.length} fotos...`);
 
       const resultadoBatch = await claudeService.analyzeMultiplePhotos(
-        fotoFileNames,
+        fotosParaBatch,
         cliente.nome,
         cliente.endereco
       );

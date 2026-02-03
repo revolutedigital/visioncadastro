@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
+import axios from 'axios';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -22,10 +23,12 @@ export interface PhotoClassification {
 export class PhotoClassifierService {
   /**
    * Classifica uma foto em categorias
+   * @param imagePath Caminho do arquivo local
+   * @param photoReference Referência do Google Places para fallback
    */
-  async classifyPhoto(imagePath: string): Promise<PhotoClassification> {
+  async classifyPhoto(imagePath: string, photoReference?: string): Promise<PhotoClassification> {
     try {
-      const base64Image = await this.imageToBase64(imagePath);
+      const base64Image = await this.imageToBase64(imagePath, photoReference);
 
       const message = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001', // Haiku 4.5 - mais inteligente
@@ -129,10 +132,45 @@ Responda APENAS no formato JSON:
 
   /**
    * Converte imagem para base64
+   * Fallback para Google Places se arquivo local não existir
    */
-  private async imageToBase64(imagePath: string): Promise<string> {
-    const imageBuffer = await fs.promises.readFile(imagePath);
-    return imageBuffer.toString('base64');
+  private async imageToBase64(imagePath: string, photoReference?: string): Promise<string> {
+    try {
+      const imageBuffer = await fs.promises.readFile(imagePath);
+      return imageBuffer.toString('base64');
+    } catch (error: any) {
+      // Se arquivo não existe e temos photoReference, buscar do Google
+      if (error.code === 'ENOENT' && photoReference) {
+        console.log(`📥 Arquivo local não encontrado, buscando do Google Places...`);
+        return this.fetchPhotoFromGoogle(photoReference);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Busca foto diretamente do Google Places API
+   */
+  private async fetchPhotoFromGoogle(photoReference: string): Promise<string> {
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    if (!apiKey) {
+      throw new Error('GOOGLE_PLACES_API_KEY não configurada');
+    }
+
+    const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${apiKey}`;
+
+    try {
+      const response = await axios.get(photoUrl, {
+        responseType: 'arraybuffer',
+        timeout: 30000,
+      });
+
+      console.log(`✅ Foto baixada do Google Places (${response.data.length} bytes)`);
+      return Buffer.from(response.data).toString('base64');
+    } catch (error: any) {
+      console.error(`❌ Erro ao buscar foto do Google: ${error.message}`);
+      throw error;
+    }
   }
 
   /**

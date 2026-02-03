@@ -1388,11 +1388,29 @@ export class AnalysisController {
         console.log(`📋 Processando planilha: ${ultimaPlanilha.nomeArquivo}`);
       }
 
+      // ========== DEBUG: Contagem detalhada antes de filtrar ==========
+      const totalPlanilha = await prisma.cliente.count({ where: planilhaFilter });
+      const statusReceita = await prisma.cliente.groupBy({
+        by: ['receitaStatus'],
+        where: planilhaFilter,
+        _count: true,
+      });
+
+      console.log(`\n${'='.repeat(60)}`);
+      console.log(`🔍 DEBUG DOCUMENT LOOKUP - ANÁLISE DETALHADA`);
+      console.log(`${'='.repeat(60)}`);
+      console.log(`📊 Total clientes na planilha: ${totalPlanilha}`);
+      console.log(`📊 Distribuição receitaStatus:`, JSON.stringify(statusReceita));
+      console.log(`🔧 Force: ${force}, Scope: ${scope}`);
+      console.log(`${'='.repeat(60)}\n`);
+
       // Se force=true, reprocessar todos (do escopo selecionado)
       // Senão, só processar os pendentes
       const whereClause = force
         ? { ...planilhaFilter }
         : { ...planilhaFilter, receitaStatus: 'PENDENTE' };
+
+      console.log(`🔍 whereClause:`, JSON.stringify(whereClause));
 
       const clientesPendentes = await prisma.cliente.findMany({
         where: whereClause,
@@ -1403,7 +1421,10 @@ export class AnalysisController {
         },
       });
 
+      console.log(`✅ Clientes que passaram no filtro: ${clientesPendentes.length}`);
+
       if (clientesPendentes.length === 0) {
+        console.log(`⚠️  NENHUM CLIENTE COM receitaStatus=PENDENTE!`);
         return res.json({
           success: true,
           message: 'Nenhum cliente encontrado para consulta da Receita',
@@ -1520,6 +1541,28 @@ export class AnalysisController {
         console.log(`📋 Processando planilha: ${ultimaPlanilha.nomeArquivo}`);
       }
 
+      // ========== DEBUG: Contagem detalhada antes de filtrar ==========
+      const totalPlanilha = await prisma.cliente.count({ where: planilhaFilter });
+      const statusReceita = await prisma.cliente.groupBy({
+        by: ['receitaStatus'],
+        where: planilhaFilter,
+        _count: true,
+      });
+      const statusNormalizacao = await prisma.cliente.groupBy({
+        by: ['normalizacaoStatus'],
+        where: planilhaFilter,
+        _count: true,
+      });
+
+      console.log(`\n${'='.repeat(60)}`);
+      console.log(`🔍 DEBUG NORMALIZAÇÃO - ANÁLISE DETALHADA`);
+      console.log(`${'='.repeat(60)}`);
+      console.log(`📊 Total clientes na planilha: ${totalPlanilha}`);
+      console.log(`📊 Distribuição receitaStatus:`, JSON.stringify(statusReceita));
+      console.log(`📊 Distribuição normalizacaoStatus:`, JSON.stringify(statusNormalizacao));
+      console.log(`🔧 Force: ${force}, Scope: ${scope}`);
+      console.log(`${'='.repeat(60)}\n`);
+
       // Se force=true, reprocessar todos com receita concluída (do escopo selecionado)
       // Senão, só processar os pendentes
       // NOTA: Processar clientes mesmo que receita tenha falhado (FALHA também conta como "processado")
@@ -1531,6 +1574,8 @@ export class AnalysisController {
             normalizacaoStatus: 'PENDENTE',
           };
 
+      console.log(`🔍 whereClause:`, JSON.stringify(whereClause));
+
       const clientesPendentes = await prisma.cliente.findMany({
         where: whereClause,
         select: {
@@ -1539,11 +1584,23 @@ export class AnalysisController {
         },
       });
 
+      console.log(`✅ Clientes que passaram no filtro: ${clientesPendentes.length}`);
+
       if (clientesPendentes.length === 0) {
+        console.log(`⚠️  NENHUM CLIENTE PASSOU NO FILTRO!`);
+        console.log(`💡 Possíveis causas:`);
+        console.log(`   - receitaStatus ainda PENDENTE (rode Document Lookup primeiro)`);
+        console.log(`   - normalizacaoStatus já não é PENDENTE (já processados)`);
         return res.json({
           success: true,
           message: 'Nenhum cliente encontrado para normalização',
           total: 0,
+          debug: {
+            totalPlanilha,
+            statusReceita,
+            statusNormalizacao,
+            whereClause,
+          },
         });
       }
 

@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import axios from 'axios';
 
 export interface AnalysisResult {
   success: boolean;
@@ -75,10 +76,47 @@ export class ClaudeService {
 
   /**
    * Converte imagem para base64
+   * Tenta ler do arquivo local primeiro, se não existir busca do Google Places
    */
-  private async imageToBase64(filePath: string): Promise<string> {
-    const imageBuffer = await fs.readFile(filePath);
-    return imageBuffer.toString('base64');
+  private async imageToBase64(filePath: string, photoReference?: string): Promise<string> {
+    try {
+      // Tentar ler arquivo local
+      const imageBuffer = await fs.readFile(filePath);
+      return imageBuffer.toString('base64');
+    } catch (error: any) {
+      // Se arquivo não existe e temos photoReference, buscar do Google
+      if (error.code === 'ENOENT' && photoReference) {
+        console.log(`📥 Arquivo local não encontrado, buscando do Google Places...`);
+        return this.fetchPhotoFromGoogle(photoReference);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Busca foto do Google Places API e retorna base64
+   */
+  private async fetchPhotoFromGoogle(photoReference: string): Promise<string> {
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    if (!apiKey) {
+      throw new Error('GOOGLE_PLACES_API_KEY não configurada');
+    }
+
+    const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${apiKey}`;
+
+    try {
+      const response = await axios.get(photoUrl, {
+        responseType: 'arraybuffer',
+        timeout: 30000,
+      });
+
+      const buffer = Buffer.from(response.data);
+      console.log(`✅ Foto baixada do Google (${Math.round(buffer.length / 1024)}KB)`);
+      return buffer.toString('base64');
+    } catch (error: any) {
+      console.error(`❌ Erro ao baixar foto do Google:`, error.message);
+      throw error;
+    }
   }
 
   /**
@@ -106,7 +144,8 @@ export class ClaudeService {
   async analyzeSinglePhoto(
     photoFileName: string,
     nomeCliente: string,
-    enderecoCliente: string
+    enderecoCliente: string,
+    photoReference?: string
   ): Promise<AnalysisResult> {
     try {
       if (!this.apiKey) {
@@ -118,20 +157,19 @@ export class ClaudeService {
 
       const photoPath = path.join(this.photosDir, photoFileName);
 
-      // Verificar se arquivo existe
-      try {
-        await fs.access(photoPath);
-      } catch {
-        return {
-          success: false,
-          error: 'Arquivo de foto não encontrado',
-        };
-      }
-
       console.log(`🤖 Analisando foto: ${photoFileName}`);
 
-      // Converter imagem para base64
-      const imageBase64 = await this.imageToBase64(photoPath);
+      // Converter imagem para base64 (tenta local, fallback para Google)
+      let imageBase64: string;
+      try {
+        imageBase64 = await this.imageToBase64(photoPath, photoReference);
+      } catch (error: any) {
+        console.error(`❌ Não foi possível obter a foto: ${error.message}`);
+        return {
+          success: false,
+          error: `Foto não disponível: ${error.message}`,
+        };
+      }
       const mimeType = this.getImageMimeType(photoFileName);
 
       // Prompt detalhado para análise (Sprint 2 Enhanced - SEM tipologia)
@@ -256,9 +294,10 @@ IMPORTANT RULES:
 
   /**
    * Analisa múltiplas fotos do mesmo estabelecimento e gera análise consolidada
+   * Aceita array de {fileName, photoReference} para buscar do Google se necessário
    */
   async analyzeMultiplePhotos(
-    photoFileNames: string[],
+    photos: Array<{fileName: string, photoReference?: string}> | string[],
     nomeCliente: string,
     enderecoCliente: string
   ): Promise<BatchAnalysisResult> {
@@ -270,18 +309,22 @@ IMPORTANT RULES:
         };
       }
 
-      console.log(`🤖 Analisando ${photoFileNames.length} fotos do cliente ${nomeCliente}`);
+      // Normalizar input (aceita array de strings para compatibilidade)
+      const normalizedPhotos = photos.map(p =>
+        typeof p === 'string' ? { fileName: p } : p
+      );
+
+      console.log(`🤖 Analisando ${normalizedPhotos.length} fotos do cliente ${nomeCliente}`);
 
       // Preparar imagens
       const imageContents: any[] = [];
 
-      for (const fileName of photoFileNames) {
-        const photoPath = path.join(this.photosDir, fileName);
+      for (const photo of normalizedPhotos) {
+        const photoPath = path.join(this.photosDir, photo.fileName);
 
         try {
-          await fs.access(photoPath);
-          const imageBase64 = await this.imageToBase64(photoPath);
-          const mimeType = this.getImageMimeType(fileName);
+          const imageBase64 = await this.imageToBase64(photoPath, photo.photoReference);
+          const mimeType = this.getImageMimeType(photo.fileName);
 
           imageContents.push({
             type: 'image',
@@ -291,8 +334,8 @@ IMPORTANT RULES:
               data: imageBase64,
             },
           });
-        } catch {
-          console.warn(`⚠️  Foto não encontrada: ${fileName}`);
+        } catch (error: any) {
+          console.warn(`⚠️  Foto não disponível: ${photo.fileName} - ${error.message}`);
         }
       }
 
