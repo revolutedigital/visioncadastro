@@ -82,11 +82,22 @@ documentLookupQueue.process(5, async (job: Job<DocumentLookupJobData>): Promise<
         console.log(`   - razaoSocial: "${d.razaoSocial || '(VAZIO!)'}"`);
         console.log(`   - situacaoReceita: "${d.situacao || '(VAZIO!)'}"`);
 
+        // Atualizar nome se estiver vazio e CNPJA retornou razaoSocial/nomeFantasia
+        const nomeAtualizado = !cliente.nome && (d.razaoSocial || d.nomeFantasia)
+          ? (d.nomeFantasia || d.razaoSocial)
+          : undefined;
+
+        if (nomeAtualizado) {
+          console.log(`📝 Atualizando nome vazio com: "${nomeAtualizado}"`);
+        }
+
         await prisma.cliente.update({
           where: { id: clienteId },
           data: {
             receitaStatus: 'SUCESSO',
             receitaProcessadoEm: new Date(),
+            // Atualizar nome se estava vazio
+            ...(nomeAtualizado && { nome: nomeAtualizado }),
             // Dados cadastrais (mesmos campos do ReceitaWS)
             razaoSocial: d.razaoSocial,
             nomeFantasia: d.nomeFantasia,

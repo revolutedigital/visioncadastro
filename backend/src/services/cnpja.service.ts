@@ -155,12 +155,18 @@ export class CnpjaService {
         console.warn(`⚠️  CNPJA: Endereço VAZIO para CNPJ ${cnpjLimpo}!`);
       }
 
+      // Extrair razão social de múltiplas fontes possíveis
+      const razaoSocial = d.company?.name || d.name || d.alias || '';
+      const nomeFantasia = d.alias || d.company?.name || d.name || '';
+
+      console.log(`🏢 CNPJA NOME DEBUG: razaoSocial="${razaoSocial}", nomeFantasia="${nomeFantasia}"`);
+
       const result: CnpjaResult = {
         success: true,
         data: {
           cnpj: cnpjLimpo,
-          razaoSocial: d.company?.name || d.alias || '',
-          nomeFantasia: d.alias || d.company?.name || '',
+          razaoSocial,
+          nomeFantasia,
           endereco: `${address.street || ''}, ${address.number || ''}`,
           numero: address.number || '',
           complemento: address.details || '',
