@@ -243,11 +243,16 @@ export class AnalysisController {
           },
         }).then(async (count) => {
           // DEBUG: Log para identificar a distribuição de status
-          const distribution = await prisma.cliente.groupBy({
+          const normDistribution = await prisma.cliente.groupBy({
             by: ['normalizacaoStatus'],
             _count: true,
           });
-          console.log('📊 DEBUG Normalização - Total:', count, 'Distribuição:', JSON.stringify(distribution));
+          const receitaDistribution = await prisma.cliente.groupBy({
+            by: ['receitaStatus'],
+            _count: true,
+          });
+          console.log('📊 DEBUG Normalização - Total:', count, 'Distribuição:', JSON.stringify(normDistribution));
+          console.log('📊 DEBUG Receita - Distribuição:', JSON.stringify(receitaDistribution));
           return count;
         }),
         prisma.cliente.count({ where: { divergenciaEndereco: true } }),
