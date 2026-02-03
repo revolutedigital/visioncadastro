@@ -17,6 +17,10 @@ import {
   RefreshCw,
   Database,
   Search,
+  AlertTriangle,
+  Copy,
+  FileText,
+  Building2,
 } from 'lucide-react';
 import { ScoringBreakdown } from './ScoringBreakdown';
 import { VisualInsights } from './VisualInsights';
@@ -47,6 +51,14 @@ interface DashboardStats {
     enriquecidos: number;
     pendentes: number;
     percentual: number;
+  };
+  // CNPJA/SERPRO stats
+  documentos?: {
+    cnpj: number;
+    cpf: number;
+    duplicatas: number;
+    cpfNaoRelacionado: number;
+    cpfNoQSA: number;
   };
 }
 
@@ -150,6 +162,14 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           pendentes: enrichment.clientes.pendentes,
           percentual: enrichment.clientes.percentualCompleto,
         } : undefined,
+        // CNPJA/SERPRO stats from analysis endpoint
+        documentos: {
+          cnpj: analysis.clientes.cnpj || 0,
+          cpf: analysis.clientes.cpf || 0,
+          duplicatas: analysis.clientes.duplicatas || 0,
+          cpfNaoRelacionado: analysis.clientes.cpfNaoRelacionado || 0,
+          cpfNoQSA: analysis.clientes.cpfNoQSA || 0,
+        },
       });
       setLoading(false);
     } catch (error) {
@@ -559,6 +579,97 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               )}
             </div>
 
+            {/* Document Breakdown & Alerts - CNPJA/SERPRO */}
+            {stats?.documentos && (stats.documentos.cnpj > 0 || stats.documentos.cpf > 0 || stats.documentos.duplicatas > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {/* Breakdown CNPJ/CPF */}
+                <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <Building2 className="w-7 h-7 text-blue-600" />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      CNPJ
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Pessoas Jurídicas</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-sm text-gray-600">CNPJs</span>
+                      <span className="text-3xl font-bold text-blue-600">{stats.documentos.cnpj}</span>
+                    </div>
+                    <p className="text-xs text-gray-500">Consultados via CNPJA</p>
+                  </div>
+                </div>
+
+                {/* CPF */}
+                <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-purple-100 rounded-lg">
+                      <Users className="w-7 h-7 text-purple-600" />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      CPF
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Pessoas Físicas</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-sm text-gray-600">CPFs</span>
+                      <span className="text-3xl font-bold text-purple-600">{stats.documentos.cpf}</span>
+                    </div>
+                    <p className="text-xs text-gray-500">Consultados via SERPRO</p>
+                  </div>
+                </div>
+
+                {/* Duplicatas */}
+                <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-orange-100 rounded-lg">
+                      <Copy className="w-7 h-7 text-orange-600" />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      Alerta
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Duplicatas</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-sm text-gray-600">Detectados</span>
+                      <span className={`text-3xl font-bold ${stats.documentos.duplicatas > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                        {stats.documentos.duplicatas}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">Mesmo endereço</p>
+                  </div>
+                </div>
+
+                {/* CPF não relacionado */}
+                <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-red-100 rounded-lg">
+                      <AlertTriangle className="w-7 h-7 text-red-600" />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      QSA
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">CPF Não Vinculado</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-sm text-gray-600">Alertas</span>
+                      <span className={`text-3xl font-bold ${stats.documentos.cpfNaoRelacionado > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                        {stats.documentos.cpfNaoRelacionado}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {stats.documentos.cpfNoQSA > 0 ? `${stats.documentos.cpfNoQSA} CPFs vinculados ao QSA` : 'Fora do quadro societário'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Quick Actions */}
             <div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
@@ -813,7 +924,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                     <div className="w-14 h-14 mx-auto mb-2 rounded-full bg-indigo-100 flex items-center justify-center ring-4 ring-indigo-50">
                       <Brain className="w-7 h-7 text-indigo-600" />
                     </div>
-                    <p className="text-xs font-bold text-gray-900 mb-1">Análise IA Vision</p>
+                    <p className="text-xs font-bold text-gray-900 mb-1">Análise IA Arca</p>
                     <p className="text-xl font-bold text-indigo-600">
                       {stats?.analysis.concluidos}
                     </p>

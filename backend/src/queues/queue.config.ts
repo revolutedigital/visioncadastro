@@ -70,6 +70,8 @@ let normalizationQueue: any;
 let placesQueue: any;
 let analysisQueue: any;
 let tipologiaQueue: any;
+let documentLookupQueue: any;
+let duplicateDetectionQueue: any;
 
 // Se Redis desabilitado, criar mocks
 if (REDIS_DISABLED) {
@@ -79,6 +81,8 @@ if (REDIS_DISABLED) {
   placesQueue = createMockQueue('places');
   analysisQueue = createMockQueue('analysis');
   tipologiaQueue = createMockQueue('tipologia');
+  documentLookupQueue = createMockQueue('document-lookup');
+  duplicateDetectionQueue = createMockQueue('duplicate-detection');
 } else {
   // Código normal com Redis REAL
   console.log('📦 Inicializando filas com Redis REAL');
@@ -308,8 +312,56 @@ if (REDIS_DISABLED) {
   });
 
   console.log('📦 Fila de Tipologia configurada');
+
+  // Fila de Document Lookup (CNPJA + SERPRO CPF)
+  documentLookupQueue = new Queue('document-lookup', {
+    createClient: createRedisClient,
+    defaultJobOptions: {
+      ...defaultJobOptions,
+      attempts: 3,
+      timeout: 60000,
+    },
+  });
+
+  documentLookupQueue.on('completed', (job: any, result: any) => {
+    console.log(`✅ DocumentLookup Job ${job.id} completado:`, result);
+  });
+
+  documentLookupQueue.on('failed', (job: any, err: any) => {
+    console.error(`❌ DocumentLookup Job ${job?.id} falhou:`, err.message);
+  });
+
+  documentLookupQueue.on('error', (error: any) => {
+    console.error('❌ Erro na fila DocumentLookup:', error);
+  });
+
+  console.log('📦 Fila de Document Lookup configurada');
+
+  // Fila de Detecção de Duplicatas
+  duplicateDetectionQueue = new Queue('duplicate-detection', {
+    createClient: createRedisClient,
+    defaultJobOptions: {
+      ...defaultJobOptions,
+      attempts: 2,
+      timeout: 30000,
+    },
+  });
+
+  duplicateDetectionQueue.on('completed', (job: any, result: any) => {
+    console.log(`✅ DuplicateDetection Job ${job.id} completado:`, result);
+  });
+
+  duplicateDetectionQueue.on('failed', (job: any, err: any) => {
+    console.error(`❌ DuplicateDetection Job ${job?.id} falhou:`, err.message);
+  });
+
+  duplicateDetectionQueue.on('error', (error: any) => {
+    console.error('❌ Erro na fila DuplicateDetection:', error);
+  });
+
+  console.log('📦 Fila de Detecção de Duplicatas configurada');
 }
 
 // Exports
-export { geocodingQueue, receitaQueue, normalizationQueue, placesQueue, analysisQueue, tipologiaQueue };
+export { geocodingQueue, receitaQueue, normalizationQueue, placesQueue, analysisQueue, tipologiaQueue, documentLookupQueue, duplicateDetectionQueue };
 export default geocodingQueue;

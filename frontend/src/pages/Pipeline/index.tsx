@@ -291,9 +291,9 @@ export function PipelinePage() {
     return [
       {
         id: '0',
-        name: 'Receita Federal',
+        name: 'Consulta Documento',
         icon: Building2,
-        description: 'Consultar CNPJ e validar dados da empresa',
+        description: 'CNPJ → CNPJA (Receita + Simples + CCC) | CPF → SERPRO',
         status: comReceita === total && total > 0 ? 'completed' : comReceita > 0 ? 'processing' : 'pending',
         progress: comReceita,
         total: total,
@@ -336,9 +336,9 @@ export function PipelinePage() {
       },
       {
         id: '4',
-        name: 'Análise IA Vision',
+        name: 'Análise IA Arca',
         icon: Image,
-        description: 'Analisar fotos com Claude Vision (ambiente, branding, público, produtos)',
+        description: 'Analisar fotos com IA (ambiente, branding, público, produtos)',
         status:
           fotosAnalisadas === queueStatus.fotos.total && queueStatus.fotos.total > 0
             ? 'completed'

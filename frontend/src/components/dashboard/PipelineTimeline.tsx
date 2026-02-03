@@ -1,21 +1,5 @@
-import { useState } from 'react';
-import { MapPin, Image, Brain, Activity, ChevronRight, Clock } from 'lucide-react';
+import { MapPin, Image, Brain, Activity, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-interface PhaseData {
-  id: string;
-  name: string;
-  icon: any;
-  progress: number;
-  processed: number;
-  total: number;
-  color: {
-    bg: string;
-    ring: string;
-    text: string;
-    gradient: string;
-  };
-}
 
 interface PipelineTimelineProps {
   geocodingProgress: number;
@@ -33,160 +17,72 @@ interface PipelineTimelineProps {
 }
 
 export function PipelineTimeline({
-  geocodingProgress,
-  geocodingProcessed,
-  geocodingTotal,
-  placesProgress,
-  placesProcessed,
-  placesTotal,
-  analysisProgress,
-  analysisProcessed,
-  analysisTotal,
-  tipologiaProgress,
-  tipologiaProcessed,
-  tipologiaTotal,
+  geocodingProgress, geocodingProcessed, geocodingTotal,
+  placesProgress, placesProcessed, placesTotal,
+  analysisProgress, analysisProcessed, analysisTotal,
+  tipologiaProgress, tipologiaProcessed, tipologiaTotal,
 }: PipelineTimelineProps) {
   const navigate = useNavigate();
-  const [hoveredPhase, setHoveredPhase] = useState<string | null>(null);
 
-  const phases: PhaseData[] = [
-    {
-      id: 'geocoding',
-      name: 'Geocodificação',
-      icon: MapPin,
-      progress: geocodingProgress,
-      processed: geocodingProcessed,
-      total: geocodingTotal,
-      color: {
-        bg: 'bg-blue-100',
-        ring: 'ring-blue-50',
-        text: 'text-blue-600',
-        gradient: 'from-blue-300 to-purple-300',
-      },
-    },
-    {
-      id: 'places',
-      name: 'Google Places',
-      icon: Image,
-      progress: placesProgress,
-      processed: placesProcessed,
-      total: placesTotal,
-      color: {
-        bg: 'bg-purple-100',
-        ring: 'ring-purple-50',
-        text: 'text-purple-600',
-        gradient: 'from-purple-300 to-indigo-300',
-      },
-    },
-    {
-      id: 'analysis',
-      name: 'Análise IA',
-      icon: Brain,
-      progress: analysisProgress,
-      processed: analysisProcessed,
-      total: analysisTotal,
-      color: {
-        bg: 'bg-indigo-100',
-        ring: 'ring-indigo-50',
-        text: 'text-indigo-600',
-        gradient: 'from-indigo-300 to-purple-300',
-      },
-    },
-    {
-      id: 'tipologia',
-      name: 'Tipologia',
-      icon: Activity,
-      progress: tipologiaProgress,
-      processed: tipologiaProcessed,
-      total: tipologiaTotal,
-      color: {
-        bg: 'bg-purple-100',
-        ring: 'ring-purple-50',
-        text: 'text-purple-600',
-        gradient: 'from-purple-300 to-pink-300',
-      },
-    },
+  const phases = [
+    { id: 'geocoding', name: 'Geocodificação', icon: MapPin, progress: geocodingProgress, processed: geocodingProcessed, total: geocodingTotal, color: 'indigo' },
+    { id: 'places', name: 'Google Places', icon: Image, progress: placesProgress, processed: placesProcessed, total: placesTotal, color: 'violet' },
+    { id: 'analysis', name: 'Análise IA', icon: Brain, progress: analysisProgress, processed: analysisProcessed, total: analysisTotal, color: 'purple' },
+    { id: 'tipologia', name: 'Tipologia', icon: Activity, progress: tipologiaProgress, processed: tipologiaProcessed, total: tipologiaTotal, color: 'fuchsia' },
   ];
 
+  const colorMap: Record<string, { bg: string; text: string; bar: string }> = {
+    indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', bar: 'bg-indigo-600' },
+    violet: { bg: 'bg-violet-50', text: 'text-violet-600', bar: 'bg-violet-600' },
+    purple: { bg: 'bg-purple-50', text: 'text-purple-600', bar: 'bg-purple-600' },
+    fuchsia: { bg: 'bg-fuchsia-50', text: 'text-fuchsia-600', bar: 'bg-fuchsia-600' },
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-white rounded-xl border border-[#E5E5EA] shadow-rest p-5">
+      <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Pipeline de Processamento</h2>
-          <p className="text-sm text-gray-500">Status em tempo real de cada fase</p>
+          <h2 className="text-sm font-semibold text-zinc-900">Pipeline de Processamento</h2>
+          <p className="text-[13px] text-zinc-500 mt-0.5">Status em tempo real de cada fase</p>
         </div>
         <button
           onClick={() => navigate('/pipeline')}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md font-medium text-sm"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-[13px] font-medium"
           aria-label="Ver detalhes do pipeline"
         >
           Ver Detalhes
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      {/* Timeline Visual */}
-      <div className="flex items-center justify-around mb-8">
+      {/* Horizontal stepper */}
+      <div className="grid grid-cols-4 gap-3">
         {phases.map((phase, index) => {
           const Icon = phase.icon;
-          const isHovered = hoveredPhase === phase.id;
-
+          const c = colorMap[phase.color];
           return (
-            <div key={phase.id} className="flex items-center flex-1">
-              {/* Phase Card */}
-              <button
-                onMouseEnter={() => setHoveredPhase(phase.id)}
-                onMouseLeave={() => setHoveredPhase(null)}
-                onClick={() => navigate('/pipeline')}
-                className={`flex-1 text-center transition-all cursor-pointer group ${
-                  isHovered ? 'transform scale-105' : ''
-                }`}
-                aria-label={`Ver detalhes de ${phase.name}`}
-              >
-                <div
-                  className={`w-16 h-16 mx-auto mb-3 rounded-full ${phase.color.bg} flex items-center justify-center ring-4 ${phase.color.ring} group-hover:ring-8 transition-all`}
-                >
-                  <Icon className={`w-8 h-8 ${phase.color.text}`} />
+            <button
+              key={phase.id}
+              onClick={() => navigate('/pipeline')}
+              className="text-center group cursor-pointer"
+              aria-label={`Ver detalhes de ${phase.name}`}
+            >
+              <div className="flex items-center justify-center mb-3">
+                {index > 0 && <div className="flex-1 h-px bg-zinc-200 -mr-1" />}
+                <div className={`w-10 h-10 rounded-xl ${c.bg} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform`}>
+                  <Icon className={`w-5 h-5 ${c.text}`} />
                 </div>
-                <p className="text-xs font-bold text-gray-900 mb-1">{phase.name}</p>
-                <p className={`text-2xl font-bold ${phase.color.text}`}>
-                  {phase.progress}%
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {phase.processed} / {phase.total}
-                </p>
-
-                {/* Progress Bar */}
-                <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className={`h-1.5 rounded-full transition-all duration-500 ${phase.color.bg}`}
-                    style={{ width: `${phase.progress}%` }}
-                  />
-                </div>
-              </button>
-
-              {/* Connector Arrow */}
-              {index < phases.length - 1 && (
-                <div className="flex-shrink-0 mx-4">
-                  <div
-                    className={`w-12 h-1 bg-gradient-to-r ${phases[index].color.gradient} rounded`}
-                  />
-                </div>
-              )}
-            </div>
+                {index < phases.length - 1 && <div className="flex-1 h-px bg-zinc-200 -ml-1" />}
+              </div>
+              <p className="text-[12px] font-medium text-zinc-900 mb-0.5">{phase.name}</p>
+              <p className={`text-lg font-semibold font-mono ${c.text}`}>{phase.progress}%</p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">{phase.processed}/{phase.total}</p>
+              <div className="mt-2 w-full bg-zinc-100 rounded-full h-1 overflow-hidden">
+                <div className={`h-1 rounded-full ${c.bar} transition-all duration-500`} style={{ width: `${phase.progress}%` }} />
+              </div>
+            </button>
           );
         })}
-      </div>
-
-      {/* Recent Activity */}
-      <div className="border-t border-gray-200 pt-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-          <Clock className="w-4 h-4" />
-          <span className="font-medium">Atividade Recente</span>
-        </div>
-        <div className="text-sm text-gray-500 text-center py-3 bg-gray-50 rounded-lg">
-          Conecte ao pipeline para ver atividades em tempo real
-        </div>
       </div>
     </div>
   );

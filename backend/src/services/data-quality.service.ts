@@ -103,6 +103,12 @@ export class DataQualityService {
     // SCORING (Peso Baixo - derivados de outros campos)
     { nome: 'scoringBreakdown', valor: null, peso: 1, categoria: 'COMERCIAL', label: 'Breakdown de Potencial' },
     { nome: 'potencialScore', valor: null, peso: 1, categoria: 'COMERCIAL', label: 'Score de Potencial' },
+
+    // INTEGRIDADE CADASTRAL (CNPJA + SERPRO)
+    { nome: 'tipoDocumento', valor: null, peso: 3, categoria: 'BASICO', label: 'Tipo de Documento (CNPJ/CPF)' },
+    { nome: 'simplesNacional', valor: null, peso: 2, categoria: 'COMERCIAL', label: 'Simples Nacional' },
+    { nome: 'cccStatus', valor: null, peso: 2, categoria: 'COMERCIAL', label: 'Cadastro de Contribuintes (CCC)' },
+    { nome: 'quadroSocietario', valor: null, peso: 3, categoria: 'COMERCIAL', label: 'Quadro Societário' },
   ];
 
   /**
@@ -215,6 +221,10 @@ export class DataQualityService {
     if (cliente.placeNomeValidado) fontesValidadas.push('Validação Fuzzy - Nome');
     if (cliente.placeEnderecoValidado) fontesValidadas.push('Validação Fuzzy - Endereço');
     if (cliente.receitaStatus === 'SUCESSO') fontesValidadas.push('Receita Federal');
+    if ((cliente as any).simplesNacional !== null && (cliente as any).simplesNacional !== undefined) fontesValidadas.push('Simples Nacional (CNPJA)');
+    if ((cliente as any).cccStatus) fontesValidadas.push('CCC (CNPJA)');
+    if ((cliente as any).quadroSocietario) fontesValidadas.push('Quadro Societário (CNPJA)');
+    if ((cliente as any).serproCpfStatus === 'SUCESSO') fontesValidadas.push('SERPRO CPF');
 
     // Determinar confiabilidade
     let confiabilidade: 'BAIXA' | 'MEDIA' | 'ALTA' | 'EXCELENTE';
@@ -244,6 +254,12 @@ export class DataQualityService {
     }
     if (!cliente.horarioFuncionamento) {
       recomendacoes.push('Horário de funcionamento ausente. Impacta scoring.');
+    }
+    if ((cliente as any).alertaDuplicata) {
+      recomendacoes.push('ALERTA: Duplicata de endereço detectada com outros cadastros.');
+    }
+    if ((cliente as any).alertaCpfNaoRelacionado) {
+      recomendacoes.push('ALERTA: CPF não encontrado em nenhum quadro societário.');
     }
 
     return {

@@ -24,7 +24,7 @@ export function WelcomeBanner({ stats }: WelcomeBannerProps) {
           <div className="flex items-center gap-3 mb-3">
             <Eye className="w-10 h-10 text-white drop-shadow-lg" />
             <h1 className="text-4xl font-bold text-white drop-shadow-lg">
-              Vision<span className="text-purple-200">AI</span>
+              Arca<span className="text-purple-200">AI</span>
             </h1>
           </div>
           <p className="text-indigo-100 text-lg font-medium mb-2">

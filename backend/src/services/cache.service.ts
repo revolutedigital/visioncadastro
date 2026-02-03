@@ -247,6 +247,8 @@ export const CachePrefixes = {
   PLACES_DETAILS: 'places:details',
   PLACES_PHOTO: 'places:photo',
   ANALYSIS_IA: 'analysis:ia',
+  CNPJA_CNPJ: 'cnpja:cnpj',
+  SERPRO_CPF: 'serpro:cpf',
 } as const;
 
 // Singleton instance

@@ -20,13 +20,10 @@ export function LiveStatus() {
   const [data, setData] = useState<LiveStatusData | null>(null);
 
   useEffect(() => {
-    // Simular conexão SSE para status (vamos implementar endpoint depois)
-    // Por enquanto, fazer polling a cada 5s
     const loadStatus = async () => {
       try {
         const response = await authFetch(`${API_BASE_URL}/api/analysis/status`);
         const result = await response.json();
-
         setData({
           activeJobs: result.queues?.active || 0,
           queueSizes: {
@@ -43,7 +40,6 @@ export function LiveStatus() {
         setStatus('error');
       }
     };
-
     loadStatus();
     const interval = setInterval(loadStatus, 5000);
     return () => clearInterval(interval);
@@ -51,26 +47,26 @@ export function LiveStatus() {
 
   if (status === 'error') {
     return (
-      <div className="flex items-center gap-2 bg-red-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-red-300/30">
-        <AlertCircle className="w-4 h-4 text-red-200" />
-        <span className="text-sm font-medium text-red-100">Desconectado</span>
+      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-red-50 text-red-600 border border-red-200">
+        <AlertCircle className="w-3.5 h-3.5" />
+        <span>Desconectado</span>
       </div>
     );
   }
 
   if (status === 'connecting' || !data) {
     return (
-      <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-        <Loader className="w-4 h-4 text-indigo-200 animate-spin" />
-        <span className="text-sm font-medium text-indigo-100">Conectando...</span>
+      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-zinc-100 text-zinc-500 border border-zinc-200">
+        <Loader className="w-3.5 h-3.5 animate-spin" />
+        <span>Conectando...</span>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 bg-green-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-green-300/30">
-      <Radio className="w-4 h-4 text-green-200 animate-pulse" />
-      <span className="text-sm font-medium text-green-100">
+    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+      <Radio className="w-3.5 h-3.5" />
+      <span>
         {data.activeJobs} job{data.activeJobs !== 1 ? 's' : ''} ativo{data.activeJobs !== 1 ? 's' : ''}
       </span>
     </div>

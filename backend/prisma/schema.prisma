@@ -40,6 +40,8 @@ model Cliente {
   cep         String?
   tipoServico String?
   cnpj        String? // CNPJ do cliente
+  cpf         String? // CPF quando documento é pessoa física
+  tipoDocumento String? // 'CNPJ' | 'CPF'
 
   // Status do processamento
   status String @default("PENDENTE") // PENDENTE, PROCESSANDO, CONCLUIDO, ERRO
@@ -58,6 +60,36 @@ model Cliente {
   atividadePrincipal    String?
   divergenciaEndereco   Boolean   @default(false) // True se endereço planilha != Receita
   similaridadeEndereco  Int?      // 0-100: percentual de similaridade
+
+  // CNPJA — dados enriquecidos
+  simplesNacional       Boolean?  // Optante pelo Simples Nacional
+  simplesNacionalData   String?   // Data de opção/exclusão
+  meiOptante            Boolean?  // Optante pelo MEI
+  cccStatus             String?   // Cadastro de Contribuintes - status
+  cccDetalhes           String?   @db.Text // JSON: detalhes CCC por estado
+  quadroSocietario      String?   @db.Text // JSON: array de sócios [{nome, cpf, qualificacao, dataEntrada}]
+  quadroSocietarioQtd   Int?      // Quantidade de sócios
+  capitalSocial         Float?    // Capital social da empresa
+  porteEmpresa          String?   // MEI, ME, EPP, DEMAIS
+
+  // SERPRO CPF — dados de pessoa física
+  cpfNome               String?   // Nome completo via SERPRO
+  cpfSituacao           String?   // Situação cadastral: Regular, Suspensa, etc
+  cpfNascimento         String?   // Data de nascimento
+  cpfObito              Boolean?  // Indicador de óbito
+  serproCpfStatus       String    @default("PENDENTE") // PENDENTE, PROCESSANDO, SUCESSO, FALHA, NAO_APLICAVEL
+  serproCpfProcessadoEm DateTime?
+  serproCpfErro         String?
+
+  // Detecção de duplicatas por endereço
+  duplicataEnderecoIds  String?   // JSON: array de IDs de clientes no mesmo endereço
+  duplicataEnderecoQtd  Int?      @default(0)
+  alertaDuplicata       Boolean   @default(false)
+
+  // Validação CPF × Quadro Societário
+  cpfNoQuadroSocietario   Boolean?  // CPF encontrado no QSA de alguma empresa
+  cpfQsaRelacionamento    String?   // JSON: detalhes do relacionamento
+  alertaCpfNaoRelacionado Boolean   @default(false) // CPF não encontrado em nenhum QSA
 
   // Normalização de Endereço (Fase 0.5) - Etapa separada com IA
   normalizacaoStatus      String    @default("PENDENTE") // PENDENTE, PROCESSANDO, SUCESSO, FALHA, FALHA_PARCIAL
@@ -216,6 +248,10 @@ model Cliente {
   @@index([placesStatus])
   @@index([normalizacaoStatus])
   @@index([potencialCategoria])
+  @@index([cnpj])
+  @@index([cpf])
+  @@index([tipoDocumento])
+  @@index([alertaDuplicata])
   @@map("clientes")
 }
 

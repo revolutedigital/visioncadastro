@@ -6,18 +6,12 @@ interface BreadcrumbItem {
   path: string;
 }
 
-/**
- * Breadcrumbs para navegação contextual
- * Mostra o caminho atual do usuário
- */
 export function Breadcrumbs() {
   const location = useLocation();
 
   const getBreadcrumbs = (): BreadcrumbItem[] => {
     const paths = location.pathname.split('/').filter(Boolean);
     const breadcrumbs: BreadcrumbItem[] = [];
-
-    // Mapear paths para labels legíveis
     const pathMap: Record<string, string> = {
       clientes: 'Clientes',
       pipeline: 'Pipeline',
@@ -27,10 +21,7 @@ export function Breadcrumbs() {
 
     paths.forEach((path, index) => {
       const fullPath = '/' + paths.slice(0, index + 1).join('/');
-
-      // Se for um ID (UUID), usar "Detalhes"
       const isId = path.match(/^[a-f0-9-]{36}$/i);
-
       breadcrumbs.push({
         label: isId ? 'Detalhes' : pathMap[path] || path,
         path: fullPath,
@@ -42,48 +33,25 @@ export function Breadcrumbs() {
 
   const breadcrumbs = getBreadcrumbs();
 
-  // Não mostrar breadcrumbs na home
-  if (location.pathname === '/') {
-    return null;
-  }
+  if (location.pathname === '/') return null;
 
   return (
     <nav aria-label="Breadcrumb" className="mb-4">
-      <ol className="flex items-center space-x-2 text-sm">
-        {/* Home */}
+      <ol className="flex items-center gap-1.5 text-[13px]">
         <li>
-          <Link
-            to="/"
-            className="flex items-center gap-1 text-gray-600 hover:text-indigo-600 transition-colors"
-            aria-label="Voltar para Dashboard"
-          >
-            <Home className="w-4 h-4" />
-            <span className="sr-only">Dashboard</span>
+          <Link to="/" className="flex items-center text-zinc-400 hover:text-indigo-600 transition-colors" aria-label="Dashboard">
+            <Home className="w-3.5 h-3.5" />
           </Link>
         </li>
-
-        {/* Breadcrumbs dinâmicos */}
         {breadcrumbs.map((item, index) => {
           const isLast = index === breadcrumbs.length - 1;
-
           return (
-            <li key={item.path} className="flex items-center gap-2">
-              <ChevronRight className="w-4 h-4 text-gray-400" aria-hidden="true" />
-
+            <li key={item.path} className="flex items-center gap-1.5">
+              <ChevronRight className="w-3 h-3 text-zinc-300" aria-hidden="true" />
               {isLast ? (
-                <span
-                  className="font-semibold text-gray-900"
-                  aria-current="page"
-                >
-                  {item.label}
-                </span>
+                <span className="font-medium text-zinc-900" aria-current="page">{item.label}</span>
               ) : (
-                <Link
-                  to={item.path}
-                  className="text-gray-600 hover:text-indigo-600 transition-colors"
-                >
-                  {item.label}
-                </Link>
+                <Link to={item.path} className="text-zinc-400 hover:text-indigo-600 transition-colors">{item.label}</Link>
               )}
             </li>
           );

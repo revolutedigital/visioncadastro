@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, User, X, Loader } from 'lucide-react';
-import { Breadcrumbs } from './Breadcrumbs';
 import { useApp } from '../../contexts/AppContext';
 import { API_BASE_URL } from '../../config/api';
 
@@ -23,7 +22,6 @@ export function Header() {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Handle Ctrl+K keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -35,31 +33,26 @@ export function Header() {
         setGlobalSearchQuery('');
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [setGlobalSearchQuery]);
 
-  // Close search results when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowResults(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Debounced search
   useEffect(() => {
     if (!globalSearchQuery || globalSearchQuery.length < 2) {
       setSearchResults([]);
       setShowResults(false);
       return;
     }
-
     const timeoutId = setTimeout(async () => {
       setSearching(true);
       try {
@@ -67,9 +60,8 @@ export function Header() {
           `${API_BASE_URL}/api/analysis/clientes?search=${encodeURIComponent(globalSearchQuery)}`
         );
         const data = await response.json();
-
         if (data.success && data.clientes) {
-          setSearchResults(data.clientes.slice(0, 8)); // Limit to 8 results
+          setSearchResults(data.clientes.slice(0, 8));
           setShowResults(true);
         }
       } catch (error) {
@@ -77,8 +69,7 @@ export function Header() {
       } finally {
         setSearching(false);
       }
-    }, 300); // Debounce 300ms
-
+    }, 300);
     return () => clearTimeout(timeoutId);
   }, [globalSearchQuery]);
 
@@ -95,71 +86,66 @@ export function Header() {
   };
 
   return (
-    <header className="h-16 bg-gradient-to-r from-white via-indigo-50/30 to-purple-50/30 border-b border-indigo-200/50 flex items-center justify-between px-6 shadow-sm backdrop-blur-sm">
-      {/* Breadcrumbs */}
-      <Breadcrumbs />
+    <header className="h-[52px] bg-white border-b border-[#E5E5EA] flex items-center justify-between px-6">
+      {/* Left: empty space for breadcrumbs shown in main */}
+      <div />
 
-      {/* Right side: Search + Notifications + User */}
-      <div className="flex items-center space-x-4">
-        {/* Search Bar */}
+      {/* Right */}
+      <div className="flex items-center gap-3">
+        {/* Search */}
         <div className="relative" ref={searchRef}>
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
             ref={inputRef}
             type="text"
             value={globalSearchQuery}
             onChange={(e) => setGlobalSearchQuery(e.target.value)}
             onFocus={() => globalSearchQuery.length >= 2 && setShowResults(true)}
-            placeholder="Buscar clientes... (Ctrl+K)"
-            className="pl-10 pr-10 py-2 w-64 border border-indigo-200 bg-white/80 backdrop-blur-sm rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all shadow-sm hover:shadow-md"
+            placeholder="Buscar... ⌘K"
+            className="pl-9 pr-9 py-1.5 w-56 border border-[#E5E5EA] bg-surface-secondary rounded-lg text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-zinc-400 transition-colors"
           />
           {globalSearchQuery && (
             <button
               onClick={handleClearSearch}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
 
-          {/* Search Results Dropdown */}
           {showResults && (
-            <div className="absolute top-full mt-2 w-96 bg-white rounded-lg shadow-lg border border-slate-200 max-h-96 overflow-y-auto z-50">
+            <div className="absolute top-full mt-2 w-80 bg-white rounded-xl shadow-overlay border border-[#E5E5EA] max-h-80 overflow-y-auto z-50">
               {searching ? (
                 <div className="p-4 text-center">
                   <Loader className="w-5 h-5 text-indigo-600 animate-spin mx-auto" />
-                  <p className="text-sm text-slate-600 mt-2">Buscando...</p>
+                  <p className="text-sm text-zinc-500 mt-2">Buscando...</p>
                 </div>
               ) : searchResults.length > 0 ? (
                 <>
-                  <div className="p-2 border-b border-slate-200">
-                    <p className="text-xs text-slate-500 px-2">
-                      {searchResults.length} resultado{searchResults.length > 1 ? 's' : ''}{' '}
-                      encontrado{searchResults.length > 1 ? 's' : ''}
+                  <div className="px-3 py-2 border-b border-[#E5E5EA]">
+                    <p className="text-[11px] text-zinc-500 font-medium uppercase tracking-wider">
+                      {searchResults.length} resultado{searchResults.length > 1 ? 's' : ''}
                     </p>
                   </div>
                   {searchResults.map((result) => (
                     <button
                       key={result.id}
                       onClick={() => handleSelectResult(result.id)}
-                      className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
+                      className="w-full text-left px-3 py-2.5 hover:bg-surface-secondary transition-colors border-b border-[#E5E5EA] last:border-0"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-slate-900">{result.nome}</p>
-                          <p className="text-xs text-slate-500 mt-1">{result.endereco}</p>
-                          {result.cidade && (
-                            <p className="text-xs text-slate-400 mt-0.5">{result.cidade}</p>
-                          )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-zinc-900 truncate">{result.nome}</p>
+                          <p className="text-[11px] text-zinc-500 truncate mt-0.5">{result.endereco}</p>
                         </div>
                         {result.potencialCategoria && (
                           <span
-                            className={`ml-2 px-2 py-1 rounded text-xs font-medium flex-shrink-0 ${
+                            className={`ml-2 px-2 py-0.5 rounded-full text-[11px] font-medium border flex-shrink-0 ${
                               result.potencialCategoria === 'ALTO'
-                                ? 'bg-green-100 text-green-800'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                 : result.potencialCategoria === 'MÉDIO'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-red-50 text-red-700 border-red-200'
                             }`}
                           >
                             {result.potencialCategoria}
@@ -171,10 +157,7 @@ export function Header() {
                 </>
               ) : (
                 <div className="p-4 text-center">
-                  <p className="text-sm text-slate-600">Nenhum resultado encontrado</p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Tente buscar por nome ou endereço
-                  </p>
+                  <p className="text-sm text-zinc-500">Nenhum resultado</p>
                 </div>
               )}
             </div>
@@ -182,19 +165,19 @@ export function Header() {
         </div>
 
         {/* Notifications */}
-        <button className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        <button className="relative p-2 text-zinc-400 hover:text-zinc-700 hover:bg-surface-secondary rounded-lg transition-colors">
+          <Bell className="w-[18px] h-[18px]" />
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
         </button>
 
-        {/* User Menu */}
-        <button className="flex items-center space-x-3 px-3 py-2 hover:bg-indigo-50 rounded-lg transition-all hover:shadow-sm">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center shadow-md">
-            <User className="w-5 h-5 text-white" />
+        {/* User */}
+        <button className="flex items-center gap-2 px-2 py-1.5 hover:bg-surface-secondary rounded-lg transition-colors">
+          <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
+            <User className="w-4 h-4 text-white" />
           </div>
           <div className="text-left hidden lg:block">
-            <p className="text-sm font-medium text-slate-900">Usuário</p>
-            <p className="text-xs text-indigo-600 font-medium">Admin</p>
+            <p className="text-sm font-medium text-zinc-900 leading-tight">Usuário</p>
+            <p className="text-[11px] text-zinc-500 leading-tight">Admin</p>
           </div>
         </button>
       </div>

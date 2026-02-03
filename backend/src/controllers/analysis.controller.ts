@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { analysisQueue, geocodingQueue, normalizationQueue, placesQueue, receitaQueue, tipologiaQueue } from '../queues/queue.config';
+import { analysisQueue, geocodingQueue, normalizationQueue, placesQueue, receitaQueue, tipologiaQueue, documentLookupQueue, duplicateDetectionQueue } from '../queues/queue.config';
 import { ScoringService } from '../services/scoring.service';
 import { DataQualityService } from '../services/data-quality.service';
 import { sseLogBroadcaster } from '../services/sse-log-broadcaster';
@@ -219,6 +219,12 @@ export class AnalysisController {
         fotosAnalisadas,
         fotosNaoAnalisadas,
         clientesConcluidos,
+        // CNPJA/SERPRO stats
+        clientesCNPJ,
+        clientesCPF,
+        clientesDuplicata,
+        clientesCpfNaoRelacionado,
+        clientesCpfNoQSA,
       ] = await Promise.all([
         prisma.cliente.count(), // Total de TODOS os clientes
         prisma.cliente.count({
@@ -250,6 +256,12 @@ export class AnalysisController {
         prisma.foto.count({ where: { analisadaPorIA: true } }),
         prisma.foto.count({ where: { analisadaPorIA: false } }),
         prisma.cliente.count({ where: { status: 'CONCLUIDO' } }),
+        // CNPJA/SERPRO stats
+        prisma.cliente.count({ where: { tipoDocumento: 'CNPJ' } }),
+        prisma.cliente.count({ where: { tipoDocumento: 'CPF' } }),
+        prisma.cliente.count({ where: { alertaDuplicata: true } }),
+        prisma.cliente.count({ where: { alertaCpfNaoRelacionado: true } }),
+        prisma.cliente.count({ where: { cpfNoQuadroSocietario: true } }),
       ]);
 
       return res.json({
@@ -296,6 +308,13 @@ export class AnalysisController {
           concluidos: clientesConcluidos,
           percentualCompleto:
             comFotos > 0 ? Math.round((clientesConcluidos / comFotos) * 100) : 0,
+          // CNPJA/SERPRO breakdown
+          cnpj: clientesCNPJ,
+          cpf: clientesCPF,
+          // Alertas
+          duplicatas: clientesDuplicata,
+          cpfNaoRelacionado: clientesCpfNaoRelacionado,
+          cpfNoQSA: clientesCpfNoQSA,
         },
         fotos: {
           total: fotosAnalisadas + fotosNaoAnalisadas,
@@ -485,6 +504,29 @@ export class AnalysisController {
           // Score breakdown de avaliações (para corrigir exibição)
           scoreAvaliacoes: cliente.scoreAvaliacoes,
           scoreRating: cliente.scoreRating,
+          // CNPJA / SERPRO - Novos campos
+          tipoDocumento: cliente.tipoDocumento,
+          cnpj: cliente.cnpj,
+          cpf: cliente.cpf,
+          simplesNacional: cliente.simplesNacional,
+          simplesNacionalData: cliente.simplesNacionalData,
+          meiOptante: cliente.meiOptante,
+          cccStatus: cliente.cccStatus,
+          cccDetalhes: cliente.cccDetalhes,
+          quadroSocietario: cliente.quadroSocietario,
+          quadroSocietarioQtd: cliente.quadroSocietarioQtd,
+          capitalSocial: cliente.capitalSocial,
+          porteEmpresa: cliente.porteEmpresa,
+          // SERPRO CPF
+          cpfNome: cliente.cpfNome,
+          cpfSituacao: cliente.cpfSituacao,
+          // Alertas de duplicata e QSA
+          alertaDuplicata: cliente.alertaDuplicata,
+          duplicataEnderecoQtd: cliente.duplicataEnderecoQtd,
+          duplicataEnderecoIds: cliente.duplicataEnderecoIds,
+          alertaCpfNaoRelacionado: cliente.alertaCpfNaoRelacionado,
+          cpfNoQuadroSocietario: cliente.cpfNoQuadroSocietario,
+          cpfQsaRelacionamento: cliente.cpfQsaRelacionamento,
         },
         fotos: fotosComAnalise,
         analiseConsolidada,
@@ -1393,14 +1435,18 @@ export class AnalysisController {
         },
       });
 
-      // Adicionar todos à fila com delay para respeitar rate limit da API
-      // ReceitaWS permite ~3 requisições por minuto
+      // Adicionar todos à fila de Document Lookup (CNPJA + SERPRO)
+      // CNPJA suporta maior volume que ReceitaWS
+      const useNewQueue = process.env.USE_CNPJA !== 'false';
+      const queue = useNewQueue ? documentLookupQueue : receitaQueue;
+      const delayPerJob = useNewQueue ? 2000 : 20000; // 2s CNPJA vs 20s ReceitaWS
+
       const jobs = await Promise.all(
         clientesPendentes.map((cliente, index) =>
-          receitaQueue.add(
+          queue.add(
             { clienteId: cliente.id, loteId: processamentoLote.id },
             {
-              delay: index * 20000, // 20s entre cada = 3 por minuto
+              delay: index * delayPerJob,
             }
           )
         )

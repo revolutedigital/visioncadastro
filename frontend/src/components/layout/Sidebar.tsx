@@ -12,8 +12,10 @@ import {
   Sparkles,
   LogOut,
   User,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import { VisionAILogo } from '../branding/VisionAILogo';
+import { ArcaAILogo } from '../branding/ArcaAILogo';
 
 const navigation = [
   { name: 'Dashboard', to: '/', icon: LayoutDashboard },
@@ -31,6 +33,7 @@ interface AIStatus {
 
 export function Sidebar() {
   const { user, logout } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
   const [aiStatus, setAiStatus] = useState<AIStatus>({
     isProcessing: false,
     waiting: 0,
@@ -38,25 +41,21 @@ export function Sidebar() {
   });
 
   useEffect(() => {
-    // Buscar status da IA
     const fetchStatus = async () => {
       try {
         const response = await authFetch(`${API_BASE_URL}/api/analysis/status`);
         const data = await response.json();
         if (data.success && data.filas) {
-          // Somar todas as filas para ter o status geral
           const totalProcessando =
             (data.filas.receita?.processando || 0) +
             (data.filas.geocoding?.processando || 0) +
             (data.filas.places?.processando || 0) +
             (data.filas.analysis?.processando || 0);
-
           const totalAguardando =
             (data.filas.receita?.aguardando || 0) +
             (data.filas.geocoding?.aguardando || 0) +
             (data.filas.places?.aguardando || 0) +
             (data.filas.analysis?.aguardando || 0);
-
           setAiStatus({
             isProcessing: totalProcessando > 0 || totalAguardando > 0,
             waiting: totalAguardando,
@@ -67,44 +66,53 @@ export function Sidebar() {
         console.error('Erro ao buscar status da IA:', error);
       }
     };
-
     fetchStatus();
-    const interval = setInterval(fetchStatus, 5000); // Atualizar a cada 5s
+    const interval = setInterval(fetchStatus, 5000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="w-64 bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 text-white flex flex-col shadow-2xl">
-      {/* Logo/Brand */}
-      <div className="h-16 flex items-center px-6 border-b border-indigo-800/30 bg-slate-900/50 backdrop-blur-sm">
-        <VisionAILogo variant="full" size="sm" />
+    <div
+      className={`${
+        collapsed ? 'w-[68px]' : 'w-60'
+      } bg-zinc-900 text-white flex flex-col transition-all duration-200 ease-in-out border-r border-zinc-800 relative`}
+    >
+      {/* Collapse toggle */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-20 z-10 w-6 h-6 bg-white border border-zinc-200 rounded-full flex items-center justify-center shadow-rest hover:shadow-hover text-zinc-500 hover:text-zinc-900 transition-colors"
+      >
+        {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+      </button>
+
+      {/* Logo */}
+      <div className="h-14 flex items-center px-4 border-b border-zinc-800">
+        {collapsed ? (
+          <ArcaAILogo variant="icon" size="sm" />
+        ) : (
+          <ArcaAILogo variant="full" size="sm" />
+        )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
         {navigation.map((item) => (
-          <NavLink
-            key={item.name}
-            to={item.to}
-            end={item.to === '/'}
-          >
+          <NavLink key={item.name} to={item.to} end={item.to === '/'}>
             {({ isActive }) => (
               <div
-                className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 group relative overflow-hidden ${
+                className={`flex items-center ${
+                  collapsed ? 'justify-center px-2' : 'px-3'
+                } py-2.5 rounded-lg transition-colors duration-150 ${
                   isActive
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/50'
-                    : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
                 }`}
+                title={collapsed ? item.name : undefined}
               >
-                {isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 animate-pulse"></div>
+                <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                {!collapsed && (
+                  <span className="ml-3 text-sm font-medium">{item.name}</span>
                 )}
-                <item.icon
-                  className={`w-5 h-5 mr-3 transition-transform group-hover:scale-110 relative z-10 ${
-                    isActive ? 'drop-shadow-glow' : ''
-                  }`}
-                />
-                <span className="font-medium relative z-10">{item.name}</span>
               </div>
             )}
           </NavLink>
@@ -112,53 +120,60 @@ export function Sidebar() {
       </nav>
 
       {/* AI Status */}
-      <div className="p-4 border-t border-indigo-800/30 bg-slate-900/50 backdrop-blur-sm">
-        <div className="px-4 py-3 bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-lg border border-indigo-700/30">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Sparkles className={`w-4 h-4 mr-2 ${aiStatus.isProcessing ? 'text-indigo-400 animate-pulse' : 'text-slate-500'}`} />
+      {!collapsed && (
+        <div className="px-3 pb-2">
+          <div className="px-3 py-2.5 bg-zinc-800/60 rounded-lg border border-zinc-700/50">
+            <div className="flex items-center gap-2">
+              <Sparkles
+                className={`w-3.5 h-3.5 ${
+                  aiStatus.isProcessing ? 'text-indigo-400' : 'text-zinc-500'
+                }`}
+              />
               <div>
-                <p className="text-xs font-semibold text-indigo-300">AI Vision</p>
-                <div className="flex items-center mt-0.5">
-                  {aiStatus.isProcessing ? (
-                    <>
-                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse mr-1.5"></div>
-                      <span className="text-xs text-slate-400">
-                        Processando {aiStatus.active > 0 && `(${aiStatus.active})`}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-1.5 h-1.5 bg-slate-500 rounded-full mr-1.5"></div>
-                      <span className="text-xs text-slate-500">Inativa</span>
-                    </>
-                  )}
+                <p className="text-[11px] font-medium text-zinc-300">Arca AI</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      aiStatus.isProcessing ? 'bg-emerald-400' : 'bg-zinc-600'
+                    }`}
+                  />
+                  <span className="text-[11px] text-zinc-500">
+                    {aiStatus.isProcessing
+                      ? `Processando${aiStatus.active > 0 ? ` (${aiStatus.active})` : ''}`
+                      : 'Inativa'}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* User Footer */}
-      <div className="p-4 border-t border-indigo-800/30 bg-slate-900/50 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center min-w-0">
-            <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+      {/* User */}
+      <div className="px-3 py-3 border-t border-zinc-800">
+        <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+          <div className={`flex items-center ${collapsed ? '' : 'min-w-0 flex-1'}`}>
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <User className="w-4 h-4 text-white" />
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user?.name || 'Usuario'}</p>
-              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
-            </div>
+            {!collapsed && (
+              <div className="ml-3 min-w-0">
+                <p className="text-sm font-medium text-white truncate">
+                  {user?.name || 'Usuario'}
+                </p>
+                <p className="text-[11px] text-zinc-500 truncate">{user?.email}</p>
+              </div>
+            )}
           </div>
-          <button
-            onClick={logout}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors flex-shrink-0"
-            title="Sair"
-          >
-            <LogOut className="w-5 h-5" />
-          </button>
+          {!collapsed && (
+            <button
+              onClick={logout}
+              className="p-1.5 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors flex-shrink-0"
+              title="Sair"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>

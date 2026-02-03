@@ -16,6 +16,12 @@ import {
   Building2,
   Loader2,
   AlertCircle,
+  Users,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Copy,
+  FileText,
 } from 'lucide-react';
 import { ConfidenceIndicator } from './ConfidenceIndicator';
 import { sanitizeAttribute } from '../utils/sanitize';
@@ -77,6 +83,29 @@ interface ClienteData {
   estrategiaComercial?: string;
   dataQualityScore?: number;
   confiabilidadeDados?: string;
+  // CNPJA / SERPRO
+  tipoDocumento?: 'CNPJ' | 'CPF' | 'INVALIDO';
+  cnpj?: string;
+  cpf?: string;
+  simplesNacional?: boolean;
+  simplesNacionalData?: string;
+  meiOptante?: boolean;
+  cccStatus?: string;
+  cccDetalhes?: string;
+  quadroSocietario?: string;
+  quadroSocietarioQtd?: number;
+  capitalSocial?: number;
+  porteEmpresa?: string;
+  // SERPRO CPF
+  cpfNome?: string;
+  cpfSituacao?: string;
+  // Alertas
+  alertaDuplicata?: boolean;
+  duplicataEnderecoQtd?: number;
+  duplicataEnderecoIds?: string;
+  alertaCpfNaoRelacionado?: boolean;
+  cpfNoQuadroSocietario?: boolean;
+  cpfQsaRelacionamento?: string;
 }
 
 interface ClienteDetalhesData {
@@ -181,6 +210,24 @@ export function ClienteDetalhes({ clienteId, onBack }: ClienteDetalhesProps) {
   const primeiraAnalise = fotos.find((f) => f.analise)?.analise;
   const indicadores = analiseConsolidada?.indicadoresPotencial || primeiraAnalise?.indicadoresPotencial;
 
+  // Parse quadro societário
+  const quadroSocietario = cliente.quadroSocietario ? (() => {
+    try {
+      return JSON.parse(cliente.quadroSocietario);
+    } catch {
+      return [];
+    }
+  })() : [];
+
+  // Parse CCC detalhes
+  const cccDetalhes = cliente.cccDetalhes ? (() => {
+    try {
+      return JSON.parse(cliente.cccDetalhes);
+    } catch {
+      return [];
+    }
+  })() : [];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
@@ -247,6 +294,58 @@ export function ClienteDetalhes({ clienteId, onBack }: ClienteDetalhesProps) {
                 </div>
               )}
             </div>
+
+            {/* Alert Banners */}
+            {cliente.alertaDuplicata && (
+              <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg">
+                <div className="flex items-start">
+                  <Copy className="w-5 h-5 text-orange-500 mr-3 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-semibold text-orange-800">Possível Duplicata Detectada</h3>
+                    <p className="text-sm text-orange-700 mt-1">
+                      Existem {cliente.duplicataEnderecoQtd} outro(s) cliente(s) cadastrado(s) neste mesmo endereço.
+                      Verifique se não há duplicidade de cadastro.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {cliente.alertaCpfNaoRelacionado && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div className="flex items-start">
+                  <AlertTriangle className="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-semibold text-red-800">CPF Não Relacionado</h3>
+                    <p className="text-sm text-red-700 mt-1">
+                      Este CPF não foi encontrado no quadro societário de nenhuma empresa cadastrada.
+                      Verifique a relação com o estabelecimento.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {cliente.cpfNoQuadroSocietario && cliente.cpfQsaRelacionamento && (
+              <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+                <div className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-semibold text-green-800">CPF Vinculado a Empresa</h3>
+                    <p className="text-sm text-green-700 mt-1">
+                      {(() => {
+                        try {
+                          const rel = JSON.parse(cliente.cpfQsaRelacionamento);
+                          return `Este CPF consta como ${rel.qualificacao || 'sócio'} na empresa ${rel.empresaNome || 'cadastrada'}.`;
+                        } catch {
+                          return 'Este CPF foi encontrado no quadro societário de uma empresa cadastrada.';
+                        }
+                      })()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* AI Analysis Card */}
             {(analiseConsolidada || primeiraAnalise) && (
@@ -510,6 +609,165 @@ export function ClienteDetalhes({ clienteId, onBack }: ClienteDetalhesProps) {
                 </div>
               )}
             </div>
+
+            {/* Documento & Situação Fiscal */}
+            {(cliente.tipoDocumento === 'CNPJ' || cliente.simplesNacional !== undefined || cliente.cccStatus) && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center mb-4">
+                  <FileText className="w-5 h-5 text-indigo-600 mr-2" />
+                  <h3 className="text-lg font-bold text-gray-900">Situação Fiscal</h3>
+                </div>
+                <div className="space-y-3">
+                  {cliente.tipoDocumento && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Tipo Documento:</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        cliente.tipoDocumento === 'CNPJ' ? 'bg-blue-100 text-blue-800' :
+                        cliente.tipoDocumento === 'CPF' ? 'bg-purple-100 text-purple-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {cliente.tipoDocumento}
+                      </span>
+                    </div>
+                  )}
+
+                  {cliente.simplesNacional !== undefined && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Simples Nacional:</span>
+                      <span className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        cliente.simplesNacional ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {cliente.simplesNacional ? (
+                          <><CheckCircle className="w-3 h-3 mr-1" /> Optante</>
+                        ) : (
+                          <><XCircle className="w-3 h-3 mr-1" /> Não Optante</>
+                        )}
+                      </span>
+                    </div>
+                  )}
+
+                  {cliente.meiOptante !== undefined && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">MEI:</span>
+                      <span className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        cliente.meiOptante ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {cliente.meiOptante ? 'Sim' : 'Não'}
+                      </span>
+                    </div>
+                  )}
+
+                  {cliente.cccStatus && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">CCC:</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        cliente.cccStatus === 'ATIVA' ? 'bg-green-100 text-green-800' :
+                        cliente.cccStatus === 'PARCIAL' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {cliente.cccStatus}
+                      </span>
+                    </div>
+                  )}
+
+                  {cliente.porteEmpresa && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Porte:</span>
+                      <span className="text-sm font-medium text-gray-900">{cliente.porteEmpresa}</span>
+                    </div>
+                  )}
+
+                  {cliente.capitalSocial !== undefined && cliente.capitalSocial > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Capital Social:</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cliente.capitalSocial)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* CCC Detalhes */}
+                  {cccDetalhes.length > 0 && (
+                    <details className="mt-3 border-t pt-3">
+                      <summary className="cursor-pointer text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                        Ver inscrições estaduais ({cccDetalhes.length})
+                      </summary>
+                      <div className="mt-2 space-y-2">
+                        {cccDetalhes.map((ie: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded">
+                            <span className="font-mono">{ie.estado}: {ie.numero}</span>
+                            <span className={`px-1.5 py-0.5 rounded ${
+                              ie.habilitado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {ie.situacao || (ie.habilitado ? 'Ativa' : 'Inativa')}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Quadro Societário */}
+            {quadroSocietario.length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center mb-4">
+                  <Users className="w-5 h-5 text-purple-600 mr-2" />
+                  <h3 className="text-lg font-bold text-gray-900">Quadro Societário</h3>
+                  <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
+                    {quadroSocietario.length} {quadroSocietario.length === 1 ? 'sócio' : 'sócios'}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {quadroSocietario.map((socio: any, idx: number) => (
+                    <div key={idx} className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-sm font-medium text-gray-900">{socio.nome}</p>
+                      {socio.cpf && (
+                        <p className="text-xs text-gray-500 font-mono mt-1">
+                          CPF: {socio.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4')}
+                        </p>
+                      )}
+                      {socio.qualificacao && (
+                        <p className="text-xs text-indigo-600 mt-1">{socio.qualificacao}</p>
+                      )}
+                      {socio.dataEntrada && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          Entrada: {new Date(socio.dataEntrada).toLocaleDateString('pt-BR')}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* CPF - Dados SERPRO */}
+            {cliente.tipoDocumento === 'CPF' && cliente.cpfNome && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center mb-4">
+                  <Users className="w-5 h-5 text-green-600 mr-2" />
+                  <h3 className="text-lg font-bold text-gray-900">Dados do CPF</h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-500">Nome na Receita</p>
+                    <p className="text-sm font-medium text-gray-900">{cliente.cpfNome}</p>
+                  </div>
+                  {cliente.cpfSituacao && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Situação:</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        cliente.cpfSituacao === 'Regular' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {cliente.cpfSituacao}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Tipologia & Estratégia Card */}
             {cliente.tipologia && (
