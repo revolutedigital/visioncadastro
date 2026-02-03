@@ -17,28 +17,25 @@ export class DocumentDetectorService {
   detect(documento: string): DocumentDetectionResult {
     const limpo = documento.replace(/[^\d]/g, '');
 
+    // Se tem 14 dígitos, é CNPJ (mesmo se dígito verificador errado)
     if (limpo.length === 14) {
-      if (this.validarCNPJ(limpo)) {
-        return {
-          tipo: 'CNPJ',
-          limpo,
-          formatado: this.formatarCNPJ(limpo),
-        };
-      }
-      return { tipo: 'INVALIDO', limpo, formatado: limpo };
+      return {
+        tipo: 'CNPJ',
+        limpo,
+        formatado: this.formatarCNPJ(limpo),
+      };
     }
 
+    // Se tem 11 dígitos, é CPF (mesmo se dígito verificador errado)
     if (limpo.length === 11) {
-      if (this.validarCPF(limpo)) {
-        return {
-          tipo: 'CPF',
-          limpo,
-          formatado: this.formatarCPF(limpo),
-        };
-      }
-      return { tipo: 'INVALIDO', limpo, formatado: limpo };
+      return {
+        tipo: 'CPF',
+        limpo,
+        formatado: this.formatarCPF(limpo),
+      };
     }
 
+    // Documento com tamanho diferente
     return { tipo: 'INVALIDO', limpo, formatado: limpo };
   }
 

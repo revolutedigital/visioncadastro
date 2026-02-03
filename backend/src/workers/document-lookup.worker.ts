@@ -58,7 +58,7 @@ documentLookupQueue.process(async (job: Job<DocumentLookupJobData>): Promise<Doc
     const documento = cliente.cnpj || cliente.cpf || '';
     const detection = documentDetectorService.detect(documento);
 
-    console.log(`📋 Cliente ${cliente.nome}: documento ${detection.tipo} (${detection.formatado})`);
+    console.log(`📋 Cliente ${cliente.nome}: cnpj="${cliente.cnpj}" cpf="${cliente.cpf}" → ${detection.tipo} (limpo="${detection.limpo}", len=${detection.limpo.length})`);
 
     // Atualizar tipo de documento
     await prisma.cliente.update({
