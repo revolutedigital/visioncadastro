@@ -1619,9 +1619,14 @@ export class AnalysisController {
       const { queueName } = req.params;
 
       let queue;
+      let alsoQueue: any = null;
       switch (queueName) {
         case 'receita':
           queue = receitaQueue;
+          alsoQueue = documentLookupQueue; // Pausar documentLookup junto
+          break;
+        case 'documentLookup':
+          queue = documentLookupQueue;
           break;
         case 'normalization':
           queue = normalizationQueue;
@@ -1638,6 +1643,9 @@ export class AnalysisController {
         case 'tipologia':
           queue = tipologiaQueue;
           break;
+        case 'duplicateDetection':
+          queue = duplicateDetectionQueue;
+          break;
         default:
           return res.status(400).json({
             success: false,
@@ -1646,7 +1654,8 @@ export class AnalysisController {
       }
 
       await queue.pause();
-      console.log(`⏸️  Fila ${queueName} pausada`);
+      if (alsoQueue) await alsoQueue.pause();
+      console.log(`⏸️  Fila ${queueName} pausada${alsoQueue ? ' (+ documentLookup)' : ''}`);
 
       return res.json({
         success: true,
@@ -1671,9 +1680,14 @@ export class AnalysisController {
       const { queueName } = req.params;
 
       let queue;
+      let alsoQueue: any = null;
       switch (queueName) {
         case 'receita':
           queue = receitaQueue;
+          alsoQueue = documentLookupQueue; // Retomar documentLookup junto
+          break;
+        case 'documentLookup':
+          queue = documentLookupQueue;
           break;
         case 'normalization':
           queue = normalizationQueue;
@@ -1690,6 +1704,9 @@ export class AnalysisController {
         case 'tipologia':
           queue = tipologiaQueue;
           break;
+        case 'duplicateDetection':
+          queue = duplicateDetectionQueue;
+          break;
         default:
           return res.status(400).json({
             success: false,
@@ -1698,7 +1715,8 @@ export class AnalysisController {
       }
 
       await queue.resume();
-      console.log(`▶️  Fila ${queueName} retomada`);
+      if (alsoQueue) await alsoQueue.resume();
+      console.log(`▶️  Fila ${queueName} retomada${alsoQueue ? ' (+ documentLookup)' : ''}`);
 
       return res.json({
         success: true,
