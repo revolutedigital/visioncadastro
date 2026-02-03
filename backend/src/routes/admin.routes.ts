@@ -27,6 +27,9 @@ router.delete('/logs', (req, res) => adminController.cleanLogs(req, res));
 // Cache
 router.post('/cache/clear', (req, res) => adminController.clearCache(req, res));
 
+// Reset status de consulta
+router.post('/reset-status', (req, res) => adminController.resetStatus(req, res));
+
 // Reset completo (PERIGOSO)
 router.post('/reset', (req, res) => adminController.resetSystem(req, res));
 

@@ -291,6 +291,34 @@ export class AdminController {
   }
 
   /**
+   * POST /api/admin/reset-status
+   * Reseta status de consulta para PENDENTE
+   */
+  async resetStatus(req: Request, res: Response) {
+    try {
+      const { status = 'FALHA' } = req.query;
+
+      const result = await prisma.cliente.updateMany({
+        where: { receitaStatus: status as string },
+        data: {
+          receitaStatus: 'PENDENTE',
+          receitaErro: null,
+        },
+      });
+
+      const total = await prisma.cliente.count({ where: { receitaStatus: 'PENDENTE' } });
+
+      res.json({
+        success: true,
+        message: `${result.count} clientes resetados de ${status} para PENDENTE`,
+        totalPendente: total,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
    * GET /api/admin/health
    * Health check detalhado do sistema
    */
