@@ -1,6 +1,6 @@
 import { Job } from 'bull';
 import { PrismaClient } from '@prisma/client';
-import { placesQueue, analysisQueue } from '../queues/queue.config';
+import { placesQueue } from '../queues/queue.config';
 import { PlacesService } from '../services/places.service';
 import { ScoringService } from '../services/scoring.service';
 import { fuzzyMatchingService } from '../services/fuzzy-matching.service';
@@ -357,31 +357,10 @@ placesQueue.process(3, async (job: Job<PlacesJobData>) => {
         place.totalAvaliacoes ?? null
       );
 
-      // Se houver fotos, fazer download
-      if (place.fotos && place.fotos.length > 0) {
-        console.log(`📸 Baixando ${place.fotos.length} fotos do cliente ${cliente.nome}`);
-
-        const fotosPath = await placesService.downloadAllPhotos(
-          place.fotos,
-          clienteId
-        );
-
-        // Salvar fotos no banco
-        for (let i = 0; i < fotosPath.length; i++) {
-          await prisma.foto.create({
-            data: {
-              clienteId,
-              fileName: fotosPath[i],
-              photoReference: place.fotos[i],
-              ordem: i,
-            },
-          });
-        }
-
-        console.log(`✅ ${fotosPath.length} fotos salvas para ${cliente.nome}`);
-      } else {
-        console.log(`ℹ️  Nenhuma foto disponível para ${cliente.nome}`);
-      }
+      // NOTA: Download de fotos desabilitado por decisão de produto
+      // O Places continua coletando metadados (rating, avaliações, horário, etc.)
+      // mas não faz mais download das fotos nem análise de imagens
+      console.log(`ℹ️  Fotos disponíveis: ${totalFotos} (download desabilitado)`);
 
       // Atualizar processamento em lote (incrementar sucesso)
       if (loteId) {
@@ -394,13 +373,8 @@ placesQueue.process(3, async (job: Job<PlacesJobData>) => {
         });
       }
 
-      // Encadear para análise de IA (se tiver fotos)
-      if (totalFotos > 0) {
-        await analysisQueue.add(
-          { clienteId, mode: 'batch', loteId },
-          { delay: 100 }
-        );
-      }
+      // NOTA: Análise de fotos por IA desabilitada por decisão de produto
+      // O pipeline segue direto para Arca Analyst sem análise de imagens
 
       return {
         success: true,

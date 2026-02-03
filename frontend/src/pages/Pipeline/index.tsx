@@ -3,7 +3,6 @@ import { API_BASE_URL } from '../../config/api';
 import { authFetch } from '../../utils/api';
 import {
   MapPin,
-  Image,
   Brain,
   Globe,
   Tags,
@@ -290,7 +289,7 @@ export function PipelinePage() {
         id: '3',
         name: 'Google Places',
         icon: Globe,
-        description: 'Buscar dados do estabelecimento (fotos, rating, horários)',
+        description: 'Buscar dados do estabelecimento (rating, avaliações, horários, website)',
         status: placesDetails && placesDetails.processados === total && total > 0
           ? 'completed'
           : comPlaces > 0 || (placesDetails && placesDetails.processados > 0)
@@ -302,23 +301,6 @@ export function PipelinePage() {
       },
       {
         id: '4',
-        name: 'Análise IA Arca',
-        icon: Image,
-        description: 'Analisar fotos com IA (ambiente, branding, público, produtos)',
-        status:
-          fotosAnalisadas === queueStatus.fotos.total && queueStatus.fotos.total > 0
-            ? 'completed'
-            : queueStatus.filas.analysis.processando > 0
-            ? 'processing'
-            : fotosAnalisadas > 0
-            ? 'processing'
-            : 'pending',
-        progress: fotosAnalisadas,
-        total: queueStatus.fotos.total,
-        color: 'purple',
-      },
-      {
-        id: '5',
         name: 'Arca Analyst',
         icon: Tags,
         description: 'Agente IA valida cadastro cruzando TODAS as fontes e dá veredito',
@@ -624,26 +606,8 @@ export function PipelinePage() {
                 </div>
               )}
 
-              {/* Step 4: Análise IA Fotos */}
-              {step.id === '4' && queueStatus && (queueStatus.fotos.analisadas > 0 || queueStatus.fotos.naoAnalisadas > 0) && (
-                <div className="mt-2 ml-12 flex items-center gap-2 text-xs flex-wrap">
-                  {queueStatus.fotos.analisadas > 0 && (
-                    <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
-                      <CheckCircle className="w-3 h-3" />
-                      {queueStatus.fotos.analisadas} fotos analisadas
-                    </span>
-                  )}
-                  {queueStatus.fotos.naoAnalisadas > 0 && (
-                    <span className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md border border-orange-200">
-                      <Clock className="w-3 h-3" />
-                      {queueStatus.fotos.naoAnalisadas} aguardando análise
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Step 5: Arca Analyst */}
-              {step.id === '5' && tipologiaStats && (tipologiaStats.total > 0 || tipologiaStats.pendentes > 0) && (
+              {/* Step 4: Arca Analyst */}
+              {step.id === '4' && tipologiaStats && (tipologiaStats.total > 0 || tipologiaStats.pendentes > 0) && (
                 <div className="mt-2 ml-12 flex items-center gap-2 text-xs flex-wrap">
                   {tipologiaStats.total > 0 && (
                     <span className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
