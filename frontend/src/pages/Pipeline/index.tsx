@@ -637,7 +637,7 @@ export function PipelinePage() {
                           aria-label={`${pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'} processamento da fila ${step.name}`}
                           className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium shadow-sm"
                         >
-                          <Pause className="w-4 h-4 mr-2" />
+                          {pausedQueues[getQueueNameFromStepId(step.id)] ? <Play className="w-4 h-4 mr-2" /> : <Pause className="w-4 h-4 mr-2" />}
                           {pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'}
                         </button>
 
@@ -714,7 +714,7 @@ export function PipelinePage() {
                           aria-label={`${pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'} processamento da fila ${step.name}`}
                           className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium shadow-sm"
                         >
-                          <Pause className="w-4 h-4 mr-2" />
+                          {pausedQueues[getQueueNameFromStepId(step.id)] ? <Play className="w-4 h-4 mr-2" /> : <Pause className="w-4 h-4 mr-2" />}
                           {pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'}
                         </button>
 
@@ -784,7 +784,7 @@ export function PipelinePage() {
                           aria-label={`${pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'} processamento da fila ${step.name}`}
                           className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium shadow-sm"
                         >
-                          <Pause className="w-4 h-4 mr-2" />
+                          {pausedQueues[getQueueNameFromStepId(step.id)] ? <Play className="w-4 h-4 mr-2" /> : <Pause className="w-4 h-4 mr-2" />}
                           {pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'}
                         </button>
 
@@ -854,7 +854,7 @@ export function PipelinePage() {
                           aria-label={`${pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'} processamento da fila ${step.name}`}
                           className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium shadow-sm"
                         >
-                          <Pause className="w-4 h-4 mr-2" />
+                          {pausedQueues[getQueueNameFromStepId(step.id)] ? <Play className="w-4 h-4 mr-2" /> : <Pause className="w-4 h-4 mr-2" />}
                           {pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'}
                         </button>
 
@@ -924,7 +924,7 @@ export function PipelinePage() {
                           aria-label={`${pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'} processamento da fila ${step.name}`}
                           className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium shadow-sm"
                         >
-                          <Pause className="w-4 h-4 mr-2" />
+                          {pausedQueues[getQueueNameFromStepId(step.id)] ? <Play className="w-4 h-4 mr-2" /> : <Pause className="w-4 h-4 mr-2" />}
                           {pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'}
                         </button>
 
@@ -994,7 +994,7 @@ export function PipelinePage() {
                           aria-label={`${pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'} processamento da fila ${step.name}`}
                           className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium shadow-sm"
                         >
-                          <Pause className="w-4 h-4 mr-2" />
+                          {pausedQueues[getQueueNameFromStepId(step.id)] ? <Play className="w-4 h-4 mr-2" /> : <Pause className="w-4 h-4 mr-2" />}
                           {pausedQueues[getQueueNameFromStepId(step.id)] ? 'Retomar' : 'Pausar'}
                         </button>
 
