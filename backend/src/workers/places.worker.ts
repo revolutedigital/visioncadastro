@@ -1,6 +1,6 @@
 import { Job } from 'bull';
 import { PrismaClient } from '@prisma/client';
-import { placesQueue } from '../queues/queue.config';
+import { placesQueue, analysisQueue } from '../queues/queue.config';
 import { PlacesService } from '../services/places.service';
 import { ScoringService } from '../services/scoring.service';
 import { fuzzyMatchingService } from '../services/fuzzy-matching.service';
@@ -394,13 +394,22 @@ placesQueue.process(3, async (job: Job<PlacesJobData>) => {
         });
       }
 
+      // Encadear para análise de IA (se tiver fotos)
+      const totalFotos = place.fotos?.length || 0;
+      if (totalFotos > 0) {
+        await analysisQueue.add(
+          { clienteId, mode: 'batch', loteId },
+          { delay: 100 }
+        );
+      }
+
       return {
         success: true,
         clienteId,
         nome: cliente.nome,
         tipoEstabelecimento,
         potencial: potencial.categoria,
-        totalFotos: place.fotos?.length || 0,
+        totalFotos,
       };
     } else {
       // Falha na busca do Place

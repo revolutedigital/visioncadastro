@@ -1,6 +1,6 @@
 import { Job } from 'bull';
 import { PrismaClient } from '@prisma/client';
-import { geocodingQueue } from '../queues/queue.config';
+import { geocodingQueue, placesQueue } from '../queues/queue.config';
 import { GeocodingService } from '../services/geocoding.service';
 import { geoValidationService } from '../services/geo-validation.service';
 import { alertingService } from '../services/alerting.service';
@@ -203,6 +203,12 @@ geocodingQueue.process(3, async (job: Job<GeocodingJobData>) => {
           },
         });
       }
+
+      // Encadear para Google Places (buscar fotos)
+      await placesQueue.add(
+        { clienteId, loteId },
+        { delay: 100 }
+      );
 
       return {
         success: true,

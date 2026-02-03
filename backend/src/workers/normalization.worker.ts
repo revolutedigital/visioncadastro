@@ -1,6 +1,6 @@
 import { Job } from 'bull';
 import { PrismaClient } from '@prisma/client';
-import { normalizationQueue } from '../queues/queue.config';
+import { normalizationQueue, geocodingQueue } from '../queues/queue.config';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { localNormalizerService } from '../services/local-normalizer.service';
@@ -188,6 +188,12 @@ normalizationQueue.process(5, async (job: Job<NormalizationJobData>): Promise<No
     console.log(`✅ NORMALIZAÇÃO TRIPLA CONCLUÍDA: ${cliente.nome}`);
     console.log(`   Confiança: ${crossValidation.confianca}% (${crossValidation.fonte})`);
     console.log(`${'='.repeat(60)}\n`);
+
+    // Encadear para geocoding
+    await geocodingQueue.add(
+      { clienteId, loteId },
+      { delay: 100 }
+    );
 
     return {
       success: true,
