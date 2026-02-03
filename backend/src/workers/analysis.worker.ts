@@ -1,6 +1,6 @@
 import { Job } from 'bull';
 import { PrismaClient } from '@prisma/client';
-import { analysisQueue } from '../queues/queue.config';
+import { analysisQueue, tipologiaQueue } from '../queues/queue.config';
 import { ClaudeService } from '../services/claude.service';
 import { ScoringService } from '../services/scoring.service';
 import { AnalysisCacheService } from '../services/analysis-cache.service';
@@ -487,6 +487,26 @@ analysisQueue.process(1, async (job: Job<AnalysisJobData>) => {
           sucesso: { increment: 1 },
         },
       });
+    }
+
+    // 🦅 ENCADEAR AUTOMATICAMENTE para Arca Analyst
+    // Só encadeia se o cliente ainda não foi processado pelo Arca
+    const clienteParaArca = await prisma.cliente.findUnique({
+      where: { id: clienteId },
+      select: { arcaStatus: true, tipologia: true },
+    });
+
+    if (!clienteParaArca?.arcaStatus && !clienteParaArca?.tipologia) {
+      console.log(`🦅 Encadeando cliente ${clienteId} para Arca Analyst...`);
+      await tipologiaQueue.add(
+        'classify-tipologia',
+        { clienteId, loteId },
+        {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 2000 },
+          delay: 1000, // Pequeno delay para não sobrecarregar
+        }
+      );
     }
 
     return {
