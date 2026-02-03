@@ -106,9 +106,9 @@ Formato de resposta:
 
       const mapping: ColumnMapping = JSON.parse(jsonMatch[0]);
 
-      // Validar que pelo menos nome e endereço foram identificados
-      if (!mapping.nome || !mapping.endereco) {
-        throw new Error('IA não conseguiu identificar colunas obrigatórias (nome e endereço)');
+      // Validar que pelo menos CNPJ foi identificado (nome e endereço serão preenchidos pela Receita)
+      if (!mapping.cnpj) {
+        throw new Error('IA não conseguiu identificar a coluna de CNPJ/CPF');
       }
 
       console.log('✅ Mapeamento identificado:', mapping);
