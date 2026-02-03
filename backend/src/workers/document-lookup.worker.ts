@@ -127,6 +127,13 @@ documentLookupQueue.process(5, async (job: Job<DocumentLookupJobData>): Promise<
           },
         });
 
+        // Mesmo com falha, encadear para normalização (pipeline continua)
+        console.log(`⚠️  CNPJA falhou mas encadeando para normalização: ${clienteId}`);
+        await normalizationQueue.add(
+          { clienteId, loteId },
+          { delay: 500 }
+        );
+
         return {
           success: false,
           clienteId,
@@ -181,6 +188,13 @@ documentLookupQueue.process(5, async (job: Job<DocumentLookupJobData>): Promise<
             receitaStatus: 'NAO_APLICAVEL',
           },
         });
+
+        // Mesmo com falha, encadear para normalização (pipeline continua)
+        console.log(`⚠️  SERPRO falhou mas encadeando para normalização: ${clienteId}`);
+        await normalizationQueue.add(
+          { clienteId, loteId },
+          { delay: 500 }
+        );
 
         return {
           success: false,
