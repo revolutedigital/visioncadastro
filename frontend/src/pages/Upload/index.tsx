@@ -14,9 +14,9 @@ type WizardStep = 1 | 2 | 3;
 interface ColumnMapping { excelColumn: string; systemField: string; }
 
 const REQUIRED_FIELDS = [
-  { key: 'nome', label: 'Nome do Cliente', required: true },
   { key: 'cnpj', label: 'Documento (CNPJ ou CPF)', required: true },
-  { key: 'endereco', label: 'Endereço', required: true },
+  { key: 'nome', label: 'Nome do Cliente', required: false, hint: 'Opcional - será preenchido pela Receita' },
+  { key: 'endereco', label: 'Endereço', required: false, hint: 'Opcional - será preenchido pela Receita' },
   { key: 'cidade', label: 'Cidade', required: false },
   { key: 'estado', label: 'Estado', required: false },
   { key: 'telefone', label: 'Telefone', required: false },
@@ -208,7 +208,11 @@ export function UploadPage() {
               return (
                 <div key={field.key} className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
                   <div>
-                    <p className="text-sm font-medium text-zinc-900">{field.label}{field.required && <span className="text-red-500 ml-0.5">*</span>}</p>
+                    <p className="text-sm font-medium text-zinc-900">
+                      {field.label}
+                      {field.required && <span className="text-red-500 ml-0.5">*</span>}
+                      {(field as any).hint && <span className="text-xs text-emerald-600 ml-2">({(field as any).hint})</span>}
+                    </p>
                     <p className="text-[11px] text-zinc-400 mt-0.5">Campo: <code className="bg-zinc-200 px-1 rounded text-[11px]">{field.key}</code></p>
                   </div>
                   <select
