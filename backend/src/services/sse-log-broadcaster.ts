@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { geocodingQueue, receitaQueue, placesQueue, analysisQueue, tipologiaQueue } from '../queues/queue.config';
+import { geocodingQueue, receitaQueue, placesQueue, analysisQueue, tipologiaQueue, documentLookupQueue, normalizationQueue } from '../queues/queue.config';
 
 interface SSEClient {
   id: string;
@@ -131,6 +131,66 @@ export class SSELogBroadcaster {
         message: `📊 Progresso: ${progress}%`,
         jobId: job.id,
         progress,
+      });
+    });
+
+    // ========== DOCUMENT LOOKUP QUEUE (CNPJA + SERPRO) ==========
+    // Emite no canal 'receita' para compatibilidade com frontend
+    documentLookupQueue.on('active', (job: any) => {
+      this.broadcast('receita', {
+        type: 'processing',
+        message: `🔄 Consultando documento: ${job.data.clienteId || job.id}`,
+        jobId: job.id,
+        data: job.data,
+      });
+    });
+
+    documentLookupQueue.on('completed', (job: any, result: any) => {
+      const tipoDoc = result?.tipoDocumento || 'DOC';
+      const fonte = result?.fonte || 'API';
+      const nome = result?.nome || job.data.clienteId;
+      this.broadcast('receita', {
+        type: 'success',
+        message: `✅ ${tipoDoc} processado (${fonte}): ${nome}`,
+        jobId: job.id,
+        result,
+      });
+    });
+
+    documentLookupQueue.on('failed', (job: any, err: any) => {
+      this.broadcast('receita', {
+        type: 'error',
+        message: `❌ Erro ao consultar documento ${job?.data?.clienteId}: ${err.message}`,
+        jobId: job?.id,
+        error: err.message,
+      });
+    });
+
+    // ========== NORMALIZATION QUEUE ==========
+    normalizationQueue.on('active', (job: any) => {
+      this.broadcast('normalization', {
+        type: 'processing',
+        message: `📝 Normalizando endereço: ${job.data.clienteId || job.id}`,
+        jobId: job.id,
+        data: job.data,
+      });
+    });
+
+    normalizationQueue.on('completed', (job: any, result: any) => {
+      this.broadcast('normalization', {
+        type: 'success',
+        message: `✅ Endereço normalizado: ${result?.enderecoNormalizado || 'Sucesso'}`,
+        jobId: job.id,
+        result,
+      });
+    });
+
+    normalizationQueue.on('failed', (job: any, err: any) => {
+      this.broadcast('normalization', {
+        type: 'error',
+        message: `❌ Erro na normalização ${job?.id}: ${err.message}`,
+        jobId: job?.id,
+        error: err.message,
       });
     });
 
